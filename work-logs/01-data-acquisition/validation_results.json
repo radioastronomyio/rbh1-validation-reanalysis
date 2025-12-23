@@ -1,0 +1,131 @@
+{
+  "timestamp": "2025-12-23T20:45:54.531536+00:00",
+  "config_file": "validation_config.yaml",
+  "data_path": "/mnt/ai-ml/data",
+  "checks": [
+    {
+      "name": "hst_original_flc_count",
+      "status": "PASS",
+      "expected": 36,
+      "actual": 36,
+      "detail": "Original pipeline (if3x*)"
+    },
+    {
+      "name": "hst_hap_flc_count",
+      "status": "PASS",
+      "expected": 36,
+      "actual": 36,
+      "detail": "HAP reprocessed (hst_17301*)"
+    },
+    {
+      "name": "hst_original_drc_count",
+      "status": "INFO",
+      "actual": 12,
+      "detail": "Original pipeline DRC"
+    },
+    {
+      "name": "hst_hap_drc_count",
+      "status": "INFO",
+      "actual": 58,
+      "detail": "HAP reprocessed DRC"
+    },
+    {
+      "name": "hst_skycell_count",
+      "status": "INFO",
+      "actual": 4,
+      "detail": "HAP skycell mosaics"
+    },
+    {
+      "name": "hst_primary_source",
+      "status": "INFO",
+      "actual": "HAP FLC",
+      "detail": "Used for integration time and downstream analysis"
+    },
+    {
+      "name": "jwst_cal_count",
+      "status": "PASS",
+      "expected": 16,
+      "actual": 16
+    },
+    {
+      "name": "jwst_s3d_count",
+      "status": "INFO",
+      "actual": 18
+    },
+    {
+      "name": "jwst_x1d_count",
+      "status": "INFO",
+      "actual": 18
+    },
+    {
+      "name": "fits_readable",
+      "status": "PASS",
+      "expected": "All files readable",
+      "actual": "198 files OK"
+    },
+    {
+      "name": "hst_provenance",
+      "status": "PASS",
+      "expected": 17301,
+      "actual": "All 146 files match"
+    },
+    {
+      "name": "jwst_provenance",
+      "status": "PASS",
+      "expected": 3149,
+      "actual": "All 52 files match"
+    },
+    {
+      "name": "hst_filter_coverage",
+      "status": "PASS",
+      "expected": [
+        "F350LP",
+        "F200LP"
+      ],
+      "actual": [
+        "F350LP",
+        "F200LP",
+        "detection"
+      ]
+    },
+    {
+      "name": "jwst_grating",
+      "status": "PASS",
+      "expected": "G140M",
+      "actual": [
+        "G140M"
+      ]
+    },
+    {
+      "name": "jwst_filter",
+      "status": "PASS",
+      "expected": "F100LP",
+      "actual": [
+        "F100LP"
+      ]
+    },
+    {
+      "name": "hst_pointing",
+      "status": "PASS",
+      "expected": "Within 1.0 arcmin",
+      "actual": "Max offset: 0.588 arcmin"
+    },
+    {
+      "name": "jwst_pointing",
+      "status": "PASS",
+      "expected": "Within 1.0 arcmin",
+      "actual": "Max offset: 0.624 arcmin"
+    },
+    {
+      "name": "hst_total_integration",
+      "status": "PASS",
+      "expected": "30000s \u00b110%",
+      "actual": "29898.0s from 36 HAP FLC files"
+    }
+  ],
+  "summary": {
+    "pass": 12,
+    "warn": 0,
+    "fail": 0
+  }
+}

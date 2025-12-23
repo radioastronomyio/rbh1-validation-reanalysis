@@ -1,0 +1,31 @@
+# RBH-1 Data Validation Configuration
+# Expected values derived from van Dokkum et al. (2025) and MAST program metadata
+
+target:
+  name: "RBH-1"
+  ra_deg: 40.43
+  dec_deg: -8.35
+  pointing_tolerance_arcmin: 1.0
+  redshift: 0.964
+
+hst:
+  program_id: 17301
+  instrument: "WFC3/UVIS"
+  filters:
+    - "F200LP"
+    - "F350LP"
+  # MAST delivers both original pipeline and HAP reprocessed products
+  # Paper states 36 exposures; we expect 36 of each type
+  expected_original_flc_count: 36  # if3x*_flc.fits - original pipeline
+  expected_hap_flc_count: 36       # hst_17301*_flc.fits - HAP reprocessed
+  primary_flc_source: "hap"        # Use HAP for primary analysis
+  expected_total_integration_sec: 30000
+  integration_tolerance_pct: 10
+
+jwst:
+  program_id: 3149
+  instrument: "NIRSPEC"
+  grating: "G140M"
+  filter: "F100LP"
+  expected_cal_count: 16
+  observation_date: "2024-07-24"
