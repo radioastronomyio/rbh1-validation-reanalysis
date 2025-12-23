@@ -142,7 +142,7 @@ A researcher receiving the RBH-1 ARD can:
 | `*_flc.fits` | CTE-corrected exposures | Custom error analysis |
 | `*_drc.fits` | Drizzled mosaics | Astrometric alignment |
 
-Filters: F200LP (~15ks), F350LP (~15ks) — 6 visits, 142 products, ~44 GB
+Filters: F200LP (~15ks), F350LP (~15ks) — 6 visits, 146 products, ~44 GB
 
 ### JWST NIRSpec IFU (Program GO-3149)
 
@@ -242,7 +242,7 @@ The falsification campaign uses a Producer-Consumer pattern optimized for hetero
 | Phase | Description | Status |
 |-------|-------------|--------|
 | Phase 0 | Ideation and Setup | ✅ Complete |
-| Phase 1 | Data Acquisition + Validation | 🔄 In Progress |
+| Phase 1 | Data Acquisition + Validation | ✅ Complete |
 | Phase 2 | Standard Extraction Baseline | ⏳ Pending |
 | Phase 3 | Cube-Space Differencing | ⏳ Pending |
 | Phase 4 | Empirical Noise Model | ⏳ Pending |
@@ -252,9 +252,11 @@ The falsification campaign uses a Producer-Consumer pattern optimized for hetero
 | Phase 8 | Edge-on Galaxy Falsification | ⏳ Pending |
 | ARD | Dataset Materialization | ⏳ Pending |
 
-Current Milestone: HST and JWST data acquired (142 + 52 products). Now validating data integrity and generating QA visualizations.
+**Current Milestone:** Phase 01 complete. HST and JWST data acquired (198 files, ~45 GB), validated against van Dokkum et al. (2025) claims, and QA visualizations generated. All validation checks pass. See [Phase 01 Worklog](work-logs/01-data-acquisition/README.md) for details.
 
-ARD Target: v1.0 release alongside paper submission
+**Next:** Phase 02 — Standard extraction baseline from JWST S3D cubes and HST DRC photometry.
+
+**ARD Target:** v1.0 release alongside paper submission
 
 ---
 
@@ -340,4 +342,4 @@ This project is licensed under the MIT License — see the [LICENSE](LICENSE) fi
 
 *Contributing to the discussion of extraordinary objects | Part of [radioastronomyio](https://github.com/radioastronomyio)*
 
-Last Updated: December 23, 2024 | Current Phase: Data Acquisition & Validation
+Last Updated: December 23, 2025 | Current Phase: Phase 02 — Standard Extraction
