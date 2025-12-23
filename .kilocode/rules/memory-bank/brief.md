@@ -1,0 +1,7 @@
+# RBH-1 Validation & Reanalysis Brief
+
+RBH-1 Validation & Reanalysis is an independent scientific validation study of the extraordinary RBH-1 linear feature discovered by van Dokkum et al. (2025). The feature is interpreted as a 62 kiloparsec supersonic bow shock from a hypervelocity supermassive black hole ejected at ~1000 km/s through gravitational wave recoil — potentially the first direct observation of this phenomenon. This project maintains a neutral validation stance, viewing contribution to the scientific discussion as an honor rather than adversarial debunking.
+
+The project produces twin co-equal deliverables: a validation paper testing whether the bow shock interpretation survives expanded methodological freedom, and an Analysis-Ready Dataset (ARD) preserving all computed artifacts (MCMC chains, synthetic cubes, likelihood interfaces) for community reanalysis. The ARD approach recognizes that packaging computed artifacts requires negligible effort compared to the weeks of CPU time needed for regeneration — preserving them is simply not throwing away what we already computed.
+
+The primary stakeholders are the astronomical community interested in RBH-1, researchers studying gravitational wave recoil signatures, and future analysts who can leverage the ARD to test alternative hypotheses without climbing the compute wall. The project operates within the Proxmox Astronomy Lab infrastructure, a 4-node heterogeneous compute cluster.
