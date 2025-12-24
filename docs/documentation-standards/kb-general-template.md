@@ -76,6 +76,7 @@ related_documents:
 The front-matter block is wrapped in HTML comments (`<!-- ... -->`) to hide from rendering while remaining parseable for RAG import.
 
 Required fields:
+
 - `title` — Article title
 - `description` — One-line summary
 - `author` — Primary author with GitHub link
@@ -134,6 +135,7 @@ Good example:
 Rename Section 3's header to match content. Structure freely—this is where the actual knowledge lives.
 
 Examples:
+
 - `## 3. MAPPINGS V Integration`
 - `## 3. Background Subtraction Method`
 - `## 3. Jackknife Procedure`

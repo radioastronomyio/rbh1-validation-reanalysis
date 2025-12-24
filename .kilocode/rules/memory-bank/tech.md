@@ -21,7 +21,7 @@
 
 ### Required Dependencies
 
-```
+```markdown
 astropy>=6.0          # FITS handling, WCS
 astroquery>=0.4       # MAST data retrieval
 numpy>=1.26           # Array operations
@@ -35,7 +35,7 @@ galpy>=1.9            # Galactic dynamics (Phase 08)
 
 ### Optional Dependencies
 
-```
+```markdown
 dragonfly-db          # Task brokering (Phase 08)
 psycopg2>=2.9         # PostgreSQL connection (Phase 08)
 arviz>=0.17           # MCMC diagnostics
@@ -159,14 +159,17 @@ python scripts/validate_data.py
 ### Common Issues
 
 #### JAX GPU Not Detected
+
 Problem: JAX falls back to CPU  
 Solution: Verify CUDA installation, check `nvidia-smi`, ensure `jaxlib[cuda]` installed
 
 #### FITS File Corruption
+
 Problem: astropy.io.fits raises error on open  
 Solution: Re-download from MAST, verify checksums
 
 #### Memory Exhaustion During Cube Generation
+
 Problem: OOM on GPU during synthetic cube creation  
 Solution: Reduce batch size, enable memory preallocation limits
 
@@ -188,8 +191,8 @@ du -sh /mnt/ai-ml/data/*
 
 ## Technical Documentation
 
-- Astropy FITS: https://docs.astropy.org/en/stable/io/fits/
-- JAX: https://jax.readthedocs.io/
-- galpy: https://docs.galpy.org/
-- JWST Pipeline: https://jwst-pipeline.readthedocs.io/
-- MAPPINGS V: https://3mdb.astro.unam.mx/
+- Astropy FITS: <https://docs.astropy.org/en/stable/io/fits/>
+- JAX: <https://jax.readthedocs.io/>
+- galpy: <https://docs.galpy.org/>
+- JWST Pipeline: <https://jwst-pipeline.readthedocs.io/>
+- MAPPINGS V: <https://3mdb.astro.unam.mx/>

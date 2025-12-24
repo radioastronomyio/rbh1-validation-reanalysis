@@ -83,6 +83,7 @@ Use banner comments to separate logical sections:
 ```
 
 Standard sections (in order):
+
 1. **Configuration** — Variables, paths, settings
 2. **Functions** — Helper function definitions (if any)
 3. **Execution** — Main script logic

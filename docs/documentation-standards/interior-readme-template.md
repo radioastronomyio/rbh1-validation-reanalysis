@@ -70,6 +70,7 @@ Sections 1-3 maintain their position regardless of content. If a section doesn't
 The front-matter block is wrapped in HTML comments (`<!-- ... -->`) to hide from rendering while remaining parseable for RAG import.
 
 Required fields:
+
 - `title` — Folder name
 - `description` — One-line role description
 - `author` — Primary author with GitHub link

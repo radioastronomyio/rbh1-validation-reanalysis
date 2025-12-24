@@ -1,6 +1,7 @@
 # RBH-1 Validation & Reanalysis Context
 
 ## Current State
+
 Last Updated: 2024-12-23
 
 ### Recent Accomplishments

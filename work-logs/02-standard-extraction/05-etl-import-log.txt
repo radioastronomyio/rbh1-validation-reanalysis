@@ -1,0 +1,179 @@
+crainbramp@proj-gpu01:/mnt/ai-ml/rbh1/phase02$ python 05-etl_wcs_solutions.py
+2025-12-24 12:26:59 [INFO] ============================================================
+2025-12-24 12:26:59 [INFO] RBH-1 WCS SOLUTIONS ETL
+2025-12-24 12:26:59 [INFO] ============================================================
+2025-12-24 12:26:59 [INFO] Loading credentials from: /opt/global-env/research.env
+2025-12-24 12:26:59 [INFO] Connecting to: 10.25.20.8:5432/rbh1_validation
+2025-12-24 12:26:59 [INFO] Pipeline run ID: 298af694-610d-4b10-82a4-dc6b6531bbaa
+2025-12-24 12:26:59 [INFO] Found 160 observations for WCS extraction
+2025-12-24 12:26:59 [INFO] [1/160] Processing: hst_17301_01_wfc3_uvis_f200lp_if3x01_drc.fits
+2025-12-24 12:26:59 [INFO] [2/160] Processing: hst_17301_01_wfc3_uvis_f200lp_if3x01iz_drc.fits
+2025-12-24 12:26:59 [INFO] [3/160] Processing: hst_17301_01_wfc3_uvis_f200lp_if3x01j0_drc.fits
+2025-12-24 12:26:59 [INFO] [4/160] Processing: hst_17301_01_wfc3_uvis_f200lp_if3x01j1_drc.fits
+2025-12-24 12:26:59 [INFO] [5/160] Processing: hst_17301_01_wfc3_uvis_f350lp_if3x01_drc.fits
+2025-12-24 12:26:59 [INFO] [6/160] Processing: hst_17301_01_wfc3_uvis_f350lp_if3x01j3_drc.fits
+2025-12-24 12:26:59 [INFO] [7/160] Processing: hst_17301_01_wfc3_uvis_f350lp_if3x01j4_drc.fits
+2025-12-24 12:26:59 [INFO] [8/160] Processing: hst_17301_01_wfc3_uvis_f350lp_if3x01j6_drc.fits
+2025-12-24 12:26:59 [INFO] [9/160] Processing: hst_17301_01_wfc3_uvis_total_if3x01_drc.fits
+2025-12-24 12:26:59 [INFO] [10/160] Processing: hst_17301_02_wfc3_uvis_f200lp_if3x02a1_drc.fits
+2025-12-24 12:26:59 [INFO] [11/160] Processing: hst_17301_02_wfc3_uvis_f200lp_if3x02a2_drc.fits
+2025-12-24 12:26:59 [INFO] [12/160] Processing: hst_17301_02_wfc3_uvis_f200lp_if3x02a3_drc.fits
+2025-12-24 12:26:59 [INFO] [13/160] Processing: hst_17301_02_wfc3_uvis_f200lp_if3x02_drc.fits
+2025-12-24 12:26:59 [INFO] [14/160] Processing: hst_17301_02_wfc3_uvis_f350lp_if3x02a8_drc.fits
+2025-12-24 12:26:59 [INFO] [15/160] Processing: hst_17301_02_wfc3_uvis_f350lp_if3x02aa_drc.fits
+2025-12-24 12:26:59 [INFO] [16/160] Processing: hst_17301_02_wfc3_uvis_f350lp_if3x02ac_drc.fits
+2025-12-24 12:26:59 [INFO] [17/160] Processing: hst_17301_02_wfc3_uvis_f350lp_if3x02_drc.fits
+2025-12-24 12:26:59 [INFO] [18/160] Processing: hst_17301_02_wfc3_uvis_total_if3x02_drc.fits
+2025-12-24 12:26:59 [INFO] [19/160] Processing: hst_17301_03_wfc3_uvis_f200lp_if3x03_drc.fits
+2025-12-24 12:26:59 [INFO] [20/160] Processing: hst_17301_03_wfc3_uvis_f200lp_if3x03hm_drc.fits
+2025-12-24 12:26:59 [INFO] [21/160] Processing: hst_17301_03_wfc3_uvis_f200lp_if3x03hn_drc.fits
+2025-12-24 12:26:59 [INFO] [22/160] Processing: hst_17301_03_wfc3_uvis_f200lp_if3x03ho_drc.fits
+2025-12-24 12:26:59 [INFO] [23/160] Processing: hst_17301_03_wfc3_uvis_f350lp_if3x03_drc.fits
+2025-12-24 12:26:59 [INFO] [24/160] Processing: hst_17301_03_wfc3_uvis_f350lp_if3x03hq_drc.fits
+2025-12-24 12:26:59 [INFO] [25/160] Processing: hst_17301_03_wfc3_uvis_f350lp_if3x03hr_drc.fits
+2025-12-24 12:26:59 [INFO] [26/160] Processing: hst_17301_03_wfc3_uvis_f350lp_if3x03ht_drc.fits
+2025-12-24 12:27:00 [INFO] [27/160] Processing: hst_17301_03_wfc3_uvis_total_if3x03_drc.fits
+2025-12-24 12:27:00 [INFO] [28/160] Processing: hst_17301_04_wfc3_uvis_f200lp_if3x04_drc.fits
+2025-12-24 12:27:00 [INFO] [29/160] Processing: hst_17301_04_wfc3_uvis_f200lp_if3x04sd_drc.fits
+2025-12-24 12:27:00 [INFO] [30/160] Processing: hst_17301_04_wfc3_uvis_f200lp_if3x04se_drc.fits
+2025-12-24 12:27:00 [INFO] [31/160] Processing: hst_17301_04_wfc3_uvis_f200lp_if3x04sf_drc.fits
+2025-12-24 12:27:00 [INFO] [32/160] Processing: hst_17301_04_wfc3_uvis_f350lp_if3x04_drc.fits
+2025-12-24 12:27:00 [INFO] [33/160] Processing: hst_17301_04_wfc3_uvis_f350lp_if3x04sh_drc.fits
+2025-12-24 12:27:00 [INFO] [34/160] Processing: hst_17301_04_wfc3_uvis_f350lp_if3x04si_drc.fits
+2025-12-24 12:27:00 [INFO] [35/160] Processing: hst_17301_04_wfc3_uvis_f350lp_if3x04sk_drc.fits
+2025-12-24 12:27:00 [INFO] [36/160] Processing: hst_17301_04_wfc3_uvis_total_if3x04_drc.fits
+2025-12-24 12:27:00 [INFO] [37/160] Processing: hst_17301_05_wfc3_uvis_f200lp_if3x05_drc.fits
+2025-12-24 12:27:00 [INFO] [38/160] Processing: hst_17301_05_wfc3_uvis_f200lp_if3x05sm_drc.fits
+2025-12-24 12:27:00 [INFO] [39/160] Processing: hst_17301_05_wfc3_uvis_f200lp_if3x05sn_drc.fits
+2025-12-24 12:27:00 [INFO] [40/160] Processing: hst_17301_05_wfc3_uvis_f200lp_if3x05so_drc.fits
+2025-12-24 12:27:00 [INFO] [41/160] Processing: hst_17301_05_wfc3_uvis_f350lp_if3x05_drc.fits
+2025-12-24 12:27:00 [INFO] [42/160] Processing: hst_17301_05_wfc3_uvis_f350lp_if3x05sq_drc.fits
+2025-12-24 12:27:00 [INFO] [43/160] Processing: hst_17301_05_wfc3_uvis_f350lp_if3x05sr_drc.fits
+2025-12-24 12:27:00 [INFO] [44/160] Processing: hst_17301_05_wfc3_uvis_f350lp_if3x05st_drc.fits
+2025-12-24 12:27:00 [INFO] [45/160] Processing: hst_17301_05_wfc3_uvis_total_if3x05_drc.fits
+2025-12-24 12:27:00 [INFO] [46/160] Processing: hst_17301_06_wfc3_uvis_f200lp_if3x06_drc.fits
+2025-12-24 12:27:00 [INFO] [47/160] Processing: hst_17301_06_wfc3_uvis_f200lp_if3x06f1_drc.fits
+2025-12-24 12:27:00 [INFO] [48/160] Processing: hst_17301_06_wfc3_uvis_f200lp_if3x06f2_drc.fits
+2025-12-24 12:27:00 [INFO] [49/160] Processing: hst_17301_06_wfc3_uvis_f200lp_if3x06f3_drc.fits
+2025-12-24 12:27:00 [INFO] [50/160] Processing: hst_17301_06_wfc3_uvis_f350lp_if3x06_drc.fits
+2025-12-24 12:27:00 [INFO] [51/160] Processing: hst_17301_06_wfc3_uvis_f350lp_if3x06f5_drc.fits
+2025-12-24 12:27:00 [INFO] [52/160] Processing: hst_17301_06_wfc3_uvis_f350lp_if3x06f6_drc.fits
+2025-12-24 12:27:00 [INFO] [53/160] Processing: hst_17301_06_wfc3_uvis_f350lp_if3x06f8_drc.fits
+2025-12-24 12:27:00 [INFO] [54/160] Processing: hst_17301_06_wfc3_uvis_total_if3x06_drc.fits
+2025-12-24 12:27:00 [INFO] [55/160] Processing: hst_skycell-p1064x11y18_wfc3_uvis_f200lp_all_drc.fits
+2025-12-24 12:27:00 [INFO] [56/160] Processing: hst_skycell-p1064x11y18_wfc3_uvis_f350lp_all_drc.fits
+2025-12-24 12:27:00 [INFO] [57/160] Processing: hst_skycell-p1153x11y01_wfc3_uvis_f200lp_all_drc.fits
+2025-12-24 12:27:00 [INFO] [58/160] Processing: hst_skycell-p1153x11y01_wfc3_uvis_f350lp_all_drc.fits
+2025-12-24 12:27:00 [INFO] [59/160] Processing: if3x01010_drc.fits
+2025-12-24 12:27:00 [INFO] [60/160] Processing: if3x01020_drc.fits
+2025-12-24 12:27:00 [INFO] [61/160] Processing: if3x02010_drc.fits
+2025-12-24 12:27:00 [INFO] [62/160] Processing: if3x02020_drc.fits
+2025-12-24 12:27:00 [INFO] [63/160] Processing: if3x03010_drc.fits
+2025-12-24 12:27:00 [INFO] [64/160] Processing: if3x03020_drc.fits
+2025-12-24 12:27:00 [INFO] [65/160] Processing: if3x04010_drc.fits
+2025-12-24 12:27:00 [INFO] [66/160] Processing: if3x04020_drc.fits
+2025-12-24 12:27:00 [INFO] [67/160] Processing: if3x05010_drc.fits
+2025-12-24 12:27:00 [INFO] [68/160] Processing: if3x05020_drc.fits
+2025-12-24 12:27:00 [INFO] [69/160] Processing: if3x06010_drc.fits
+2025-12-24 12:27:00 [INFO] [70/160] Processing: if3x06020_drc.fits
+2025-12-24 12:27:00 [INFO] [71/160] Processing: hst_17301_01_wfc3_uvis_f200lp_if3x01iz_flc.fits
+2025-12-24 12:27:00 [INFO] [72/160] Processing: hst_17301_01_wfc3_uvis_f200lp_if3x01j0_flc.fits
+2025-12-24 12:27:00 [INFO] [73/160] Processing: hst_17301_01_wfc3_uvis_f200lp_if3x01j1_flc.fits
+2025-12-24 12:27:00 [INFO] [74/160] Processing: hst_17301_01_wfc3_uvis_f350lp_if3x01j3_flc.fits
+2025-12-24 12:27:00 [INFO] [75/160] Processing: hst_17301_01_wfc3_uvis_f350lp_if3x01j4_flc.fits
+2025-12-24 12:27:00 [INFO] [76/160] Processing: hst_17301_01_wfc3_uvis_f350lp_if3x01j6_flc.fits
+2025-12-24 12:27:00 [INFO] [77/160] Processing: hst_17301_02_wfc3_uvis_f200lp_if3x02a1_flc.fits
+2025-12-24 12:27:00 [INFO] [78/160] Processing: hst_17301_02_wfc3_uvis_f200lp_if3x02a2_flc.fits
+2025-12-24 12:27:00 [INFO] [79/160] Processing: hst_17301_02_wfc3_uvis_f200lp_if3x02a3_flc.fits
+2025-12-24 12:27:00 [INFO] [80/160] Processing: hst_17301_02_wfc3_uvis_f350lp_if3x02a8_flc.fits
+2025-12-24 12:27:00 [INFO] [81/160] Processing: hst_17301_02_wfc3_uvis_f350lp_if3x02aa_flc.fits
+2025-12-24 12:27:00 [INFO] [82/160] Processing: hst_17301_02_wfc3_uvis_f350lp_if3x02ac_flc.fits
+2025-12-24 12:27:00 [INFO] [83/160] Processing: hst_17301_03_wfc3_uvis_f200lp_if3x03hm_flc.fits
+2025-12-24 12:27:00 [INFO] [84/160] Processing: hst_17301_03_wfc3_uvis_f200lp_if3x03hn_flc.fits
+2025-12-24 12:27:01 [INFO] [85/160] Processing: hst_17301_03_wfc3_uvis_f200lp_if3x03ho_flc.fits
+2025-12-24 12:27:01 [INFO] [86/160] Processing: hst_17301_03_wfc3_uvis_f350lp_if3x03hq_flc.fits
+2025-12-24 12:27:01 [INFO] [87/160] Processing: hst_17301_03_wfc3_uvis_f350lp_if3x03hr_flc.fits
+2025-12-24 12:27:01 [INFO] [88/160] Processing: hst_17301_03_wfc3_uvis_f350lp_if3x03ht_flc.fits
+2025-12-24 12:27:01 [INFO] [89/160] Processing: hst_17301_04_wfc3_uvis_f200lp_if3x04sd_flc.fits
+2025-12-24 12:27:01 [INFO] [90/160] Processing: hst_17301_04_wfc3_uvis_f200lp_if3x04se_flc.fits
+2025-12-24 12:27:01 [INFO] [91/160] Processing: hst_17301_04_wfc3_uvis_f200lp_if3x04sf_flc.fits
+2025-12-24 12:27:01 [INFO] [92/160] Processing: hst_17301_04_wfc3_uvis_f350lp_if3x04sh_flc.fits
+2025-12-24 12:27:01 [INFO] [93/160] Processing: hst_17301_04_wfc3_uvis_f350lp_if3x04si_flc.fits
+2025-12-24 12:27:01 [INFO] [94/160] Processing: hst_17301_04_wfc3_uvis_f350lp_if3x04sk_flc.fits
+2025-12-24 12:27:01 [INFO] [95/160] Processing: hst_17301_05_wfc3_uvis_f200lp_if3x05sm_flc.fits
+2025-12-24 12:27:01 [INFO] [96/160] Processing: hst_17301_05_wfc3_uvis_f200lp_if3x05sn_flc.fits
+2025-12-24 12:27:01 [INFO] [97/160] Processing: hst_17301_05_wfc3_uvis_f200lp_if3x05so_flc.fits
+2025-12-24 12:27:01 [INFO] [98/160] Processing: hst_17301_05_wfc3_uvis_f350lp_if3x05sq_flc.fits
+2025-12-24 12:27:01 [INFO] [99/160] Processing: hst_17301_05_wfc3_uvis_f350lp_if3x05sr_flc.fits
+2025-12-24 12:27:01 [INFO] [100/160] Processing: hst_17301_05_wfc3_uvis_f350lp_if3x05st_flc.fits
+2025-12-24 12:27:01 [INFO] [101/160] Processing: hst_17301_06_wfc3_uvis_f200lp_if3x06f1_flc.fits
+2025-12-24 12:27:01 [INFO] [102/160] Processing: hst_17301_06_wfc3_uvis_f200lp_if3x06f2_flc.fits
+2025-12-24 12:27:01 [INFO] [103/160] Processing: hst_17301_06_wfc3_uvis_f200lp_if3x06f3_flc.fits
+2025-12-24 12:27:01 [INFO] [104/160] Processing: hst_17301_06_wfc3_uvis_f350lp_if3x06f5_flc.fits
+2025-12-24 12:27:01 [INFO] [105/160] Processing: hst_17301_06_wfc3_uvis_f350lp_if3x06f6_flc.fits
+2025-12-24 12:27:01 [INFO] [106/160] Processing: hst_17301_06_wfc3_uvis_f350lp_if3x06f8_flc.fits
+2025-12-24 12:27:01 [INFO] [107/160] Processing: if3x01izq_flc.fits
+2025-12-24 12:27:01 [INFO] [108/160] Processing: if3x01j0q_flc.fits
+2025-12-24 12:27:01 [INFO] [109/160] Processing: if3x01j1q_flc.fits
+2025-12-24 12:27:01 [INFO] [110/160] Processing: if3x01j3q_flc.fits
+2025-12-24 12:27:01 [INFO] [111/160] Processing: if3x01j4q_flc.fits
+2025-12-24 12:27:01 [INFO] [112/160] Processing: if3x01j6q_flc.fits
+2025-12-24 12:27:02 [INFO] [113/160] Processing: if3x02a1q_flc.fits
+2025-12-24 12:27:02 [INFO] [114/160] Processing: if3x02a2q_flc.fits
+2025-12-24 12:27:02 [INFO] [115/160] Processing: if3x02a3q_flc.fits
+2025-12-24 12:27:02 [INFO] [116/160] Processing: if3x02a8q_flc.fits
+2025-12-24 12:27:02 [INFO] [117/160] Processing: if3x02aaq_flc.fits
+2025-12-24 12:27:02 [INFO] [118/160] Processing: if3x02acq_flc.fits
+2025-12-24 12:27:02 [INFO] [119/160] Processing: if3x03hmq_flc.fits
+2025-12-24 12:27:02 [INFO] [120/160] Processing: if3x03hnq_flc.fits
+2025-12-24 12:27:02 [INFO] [121/160] Processing: if3x03hoq_flc.fits
+2025-12-24 12:27:02 [INFO] [122/160] Processing: if3x03hqq_flc.fits
+2025-12-24 12:27:02 [INFO] [123/160] Processing: if3x03hrq_flc.fits
+2025-12-24 12:27:02 [INFO] [124/160] Processing: if3x03htq_flc.fits
+2025-12-24 12:27:02 [INFO] [125/160] Processing: if3x04sdq_flc.fits
+2025-12-24 12:27:02 [INFO] [126/160] Processing: if3x04seq_flc.fits
+2025-12-24 12:27:02 [INFO] [127/160] Processing: if3x04sfq_flc.fits
+2025-12-24 12:27:02 [INFO] [128/160] Processing: if3x04shq_flc.fits
+2025-12-24 12:27:02 [INFO] [129/160] Processing: if3x04siq_flc.fits
+2025-12-24 12:27:02 [INFO] [130/160] Processing: if3x04skq_flc.fits
+2025-12-24 12:27:02 [INFO] [131/160] Processing: if3x05smq_flc.fits
+2025-12-24 12:27:02 [INFO] [132/160] Processing: if3x05snq_flc.fits
+2025-12-24 12:27:02 [INFO] [133/160] Processing: if3x05soq_flc.fits
+2025-12-24 12:27:02 [INFO] [134/160] Processing: if3x05sqq_flc.fits
+2025-12-24 12:27:02 [INFO] [135/160] Processing: if3x05srq_flc.fits
+2025-12-24 12:27:02 [INFO] [136/160] Processing: if3x05stq_flc.fits
+2025-12-24 12:27:02 [INFO] [137/160] Processing: if3x06f1q_flc.fits
+2025-12-24 12:27:02 [INFO] [138/160] Processing: if3x06f2q_flc.fits
+2025-12-24 12:27:02 [INFO] [139/160] Processing: if3x06f3q_flc.fits
+2025-12-24 12:27:02 [INFO] [140/160] Processing: if3x06f5q_flc.fits
+2025-12-24 12:27:02 [INFO] [141/160] Processing: if3x06f6q_flc.fits
+2025-12-24 12:27:03 [INFO] [142/160] Processing: if3x06f8q_flc.fits
+2025-12-24 12:27:03 [INFO] [143/160] Processing: jw03149001001_02101_00001_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [144/160] Processing: jw03149001001_02101_00002_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [145/160] Processing: jw03149001001_02101_00003_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [146/160] Processing: jw03149001001_02101_00004_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [147/160] Processing: jw03149001001_04101_00001_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [148/160] Processing: jw03149001001_04101_00002_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [149/160] Processing: jw03149001001_04101_00003_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [150/160] Processing: jw03149001001_04101_00004_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [151/160] Processing: jw03149001001_06101_00001_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [152/160] Processing: jw03149001001_06101_00002_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [153/160] Processing: jw03149001001_06101_00003_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [154/160] Processing: jw03149001001_06101_00004_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [155/160] Processing: jw03149001001_08101_00001_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [156/160] Processing: jw03149001001_08101_00002_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [157/160] Processing: jw03149001001_08101_00003_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [158/160] Processing: jw03149001001_08101_00004_nrs1_s3d.fits
+2025-12-24 12:27:03 [INFO] [159/160] Processing: jw03149-o001_t001_nirspec_g140m-f100lp_s3d.fits
+2025-12-24 12:27:03 [INFO] [160/160] Processing: jw03149-o001_t002_nirspec_g140m-f100lp_s3d.fits
+2025-12-24 12:27:03 [INFO] Inserting 160 WCS solutions to database...
+2025-12-24 12:27:03 [INFO] ============================================================
+2025-12-24 12:27:03 [INFO] ETL SUMMARY
+2025-12-24 12:27:03 [INFO] ============================================================
+2025-12-24 12:27:03 [INFO] Total observations queried: 160
+2025-12-24 12:27:03 [INFO] Successfully processed:     160
+2025-12-24 12:27:03 [INFO] New WCS records inserted:   0
+2025-12-24 12:27:03 [INFO] Existing records updated:   160
+2025-12-24 12:27:03 [INFO] Skipped (no valid WCS):     0
+2025-12-24 12:27:03 [INFO] Errors:                     0
+2025-12-24 12:27:03 [INFO] ============================================================
