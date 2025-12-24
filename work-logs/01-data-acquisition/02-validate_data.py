@@ -202,21 +202,15 @@ def get_header_value(header, *keys):
 
 def validate_fits_readable(fits_files: list[Path]) -> list[dict]:
     """
-    Verify all FITS files can be opened and contain valid HDUs.
-
-    This is the most basic validation—if files are corrupted or truncated,
-    nothing else matters. We don't just check the file exists; we actually
-    open it and access the HDU list to verify the FITS structure is intact.
-
-    Parameters
-    ----------
-    fits_files : list[Path]
-        All FITS files to validate.
-
-    Returns
-    -------
-    list[dict]
-        Single result entry indicating overall readability.
+    Check that each FITS file can be opened and its HDU list accessed.
+    
+    Returns a single check-result describing overall readability: `PASS` if all files opened successfully, or `FAIL` with details (up to five unreadable files and their error messages) if any files could not be read.
+    
+    Parameters:
+        fits_files (list[Path]): Paths to FITS files to validate.
+    
+    Returns:
+        list[dict]: A list containing one check-result dictionary summarizing the readability check.
     """
     results = []
     unreadable = []
@@ -396,32 +390,19 @@ def validate_jwst_inventory(jwst_path: Path, config: dict) -> tuple[list[dict], 
 
 def validate_provenance(fits_files: list[Path], expected_program: int, telescope: str) -> list[dict]:
     """
-    Validate that all files originate from the expected observing program.
-
-    This is a critical check for independent validation. If we're validating
-    van Dokkum's RBH-1 claim, we must verify we're analyzing data from their
-    programs (GO-17301 and GO-3149), not some other observation.
-
-    Parameters
-    ----------
-    fits_files : list[Path]
-        FITS files to check.
-    expected_program : int
-        Expected proposal ID (17301 for HST, 3149 for JWST).
-    telescope : str
-        "HST" or "JWST" for result naming.
-
-    Returns
-    -------
-    list[dict]
-        Validation results.
-
-    Notes
-    -----
-    Different pipelines use different header keywords:
-    - HST: PROPOSID
-    - JWST: PROGRAM
-    We try multiple keywords to be robust.
+    Check that each FITS file lists the expected observing program identifier.
+    
+    Parameters:
+        fits_files (list[Path]): FITS file paths to inspect.
+        expected_program (int): Expected proposal/program identifier to match.
+        telescope (str): Telescope label used in the result name (e.g., "HST" or "JWST").
+    
+    Returns:
+        list[dict]: A single-element list containing a validation result dict. The result
+            has status "PASS" if all files match, "WARN" if up to 10% of files mismatch,
+            and "FAIL" if more than 10% mismatch. The `expected` field contains the
+            expected program id, `actual` summarizes the number of mismatches, and
+            `detail` includes up to three example mismatched file messages.
     """
     results = []
     mismatched = []
@@ -469,23 +450,17 @@ def validate_provenance(fits_files: list[Path], expected_program: int, telescope
 
 def validate_hst_filters(fits_files: list[Path], config: dict) -> list[dict]:
     """
-    Validate HST filter coverage matches paper claims.
-
-    van Dokkum et al. used F200LP and F350LP filters. These long-pass filters
-    provide broad wavelength coverage sensitive to both young stars and
-    continuum emission from the wake.
-
-    Parameters
-    ----------
-    fits_files : list[Path]
-        HST FITS files to check.
-    config : dict
-        Configuration with expected filters.
-
-    Returns
-    -------
-    list[dict]
-        Validation results.
+    Check that the provided HST FITS files include the filters declared in the config.
+    
+    Parameters:
+        fits_files (list[Path]): HST FITS files to inspect.
+        config (dict): Configuration containing expected filters under config['hst']['filters'].
+    
+    Returns:
+        list[dict]: A single validation result dict named "hst_filter_coverage".
+            - Status is `PASS` if all expected filters are present, `FAIL` if any are missing.
+            - `expected` lists the filters from the configuration, `actual` lists detected filters.
+            - `detail` (present on failure) lists which expected filters are missing.
     """
     results = []
     filters_found = set()
@@ -525,23 +500,16 @@ def validate_hst_filters(fits_files: list[Path], config: dict) -> list[dict]:
 
 def validate_jwst_config(fits_files: list[Path], config: dict) -> list[dict]:
     """
-    Validate JWST instrument configuration matches paper claims.
-
-    The kinematic analysis requires specific spectral resolution and wavelength
-    coverage. G140M grating with F100LP filter provides R~1000 from 0.97-1.84 μm,
-    covering [O III] and Hα at z=0.964.
-
-    Parameters
-    ----------
-    fits_files : list[Path]
-        JWST FITS files to check.
-    config : dict
-        Configuration with expected grating/filter.
-
-    Returns
-    -------
-    list[dict]
-        Validation results.
+    Validate that JWST FITS headers contain the expected disperser (grating) and filter as specified in the config.
+    
+    Checks the GRATING or DISPERSER header values against config['jwst']['grating'] and the FILTER or FWA_POS header values against config['jwst']['filter'].
+    
+    Parameters:
+        fits_files (list[Path]): Paths to JWST FITS files to inspect.
+        config (dict): Validation configuration; must include keys 'jwst' -> 'grating' and 'jwst' -> 'filter'.
+    
+    Returns:
+        list[dict]: Two standardized validation result dictionaries (one for grating, one for filter), produced by check_result, containing status, expected value, observed values, and optional detail.
     """
     results = []
     gratings_found = set()
@@ -586,31 +554,18 @@ def validate_jwst_config(fits_files: list[Path], config: dict) -> list[dict]:
 
 def validate_pointing(fits_files: list[Path], config: dict, telescope: str) -> list[dict]:
     """
-    Validate that all observations point to the expected target coordinates.
-
-    This verifies we're looking at RBH-1 (RA 40.43°, Dec -8.35°) and not some
-    other field. While MAST queries by proposal ID should ensure this, an
-    independent check provides additional confidence.
-
-    Parameters
-    ----------
-    fits_files : list[Path]
-        FITS files to check.
-    config : dict
-        Configuration with target coordinates and tolerance.
-    telescope : str
-        "HST" or "JWST" for result naming.
-
-    Returns
-    -------
-    list[dict]
-        Validation results.
-
-    Notes
-    -----
-    Tolerance is set in config (default 1 arcmin). Individual dither offsets
-    and guide star acquisition can cause small pointing variations, but all
-    observations should be within the tolerance of the target.
+    Check that observations' pointing falls within the configured target tolerance.
+    
+    Parameters:
+        fits_files (list[Path]): FITS files whose headers will be inspected for RA/Dec.
+        config (dict): Configuration containing target coordinates ('target.ra_deg', 'target.dec_deg')
+            and pointing tolerance in arcminutes ('target.pointing_tolerance_arcmin').
+        telescope (str): Telescope identifier used in the result name (e.g., "HST" or "JWST").
+    
+    Returns:
+        list[dict]: A list with a single validation result dict indicating PASS if all files are
+        within tolerance, FAIL if one or more files exceed the tolerance (includes count and examples),
+        or WARN if no coordinates could be extracted.
     """
     results = []
 
@@ -677,27 +632,17 @@ def validate_pointing(fits_files: list[Path], config: dict, telescope: str) -> l
 
 def validate_hst_integration(primary_flc_files: list[Path], config: dict, source_name: str) -> list[dict]:
     """
-    Validate total HST integration time against paper claims.
-
-    van Dokkum et al. report ~30,000 seconds of HST integration. This check
-    sums EXPTIME from all FLC files and compares to the claimed value.
-
-    We use only the primary FLC source (HAP or original) to avoid double-
-    counting, since both represent the same physical exposures.
-
-    Parameters
-    ----------
-    primary_flc_files : list[Path]
-        FLC files from the primary source (HAP or original).
-    config : dict
-        Configuration with expected integration time and tolerance.
-    source_name : str
-        "HAP" or "original" for reporting.
-
-    Returns
-    -------
-    list[dict]
-        Validation results.
+    Check that the summed HST FLC exposure time from the chosen primary source matches the expected total in the config.
+    
+    Sums EXPTIME/TEXPTIME from the provided primary FLC files and compares the total to config['hst']['expected_total_integration_sec'] using config['hst']['integration_tolerance_pct'] percent; produces a PASS if within tolerance or a WARN if outside it.
+    
+    Parameters:
+        primary_flc_files (list[Path]): FLC files from the selected primary source (HAP or original).
+        config (dict): Validation configuration containing `hst.expected_total_integration_sec` and `hst.integration_tolerance_pct`.
+        source_name (str): Human-readable name of the primary source used in reporting (e.g., "HAP" or "original").
+    
+    Returns:
+        list[dict]: A single-element list containing the validation result dictionary for the total HST integration check.
     """
     results = []
 
@@ -746,25 +691,17 @@ def validate_hst_integration(primary_flc_files: list[Path], config: dict, source
 
 def generate_markdown_report(results: list[dict], config_path: Path, data_path: Path) -> str:
     """
-    Generate human-readable Markdown validation report.
-
-    The report is designed for inclusion in documentation and provides a
-    clear summary of validation status for both technical and scientific
-    reviewers.
-
-    Parameters
-    ----------
-    results : list[dict]
-        All validation results.
-    config_path : Path
-        Path to config file (for documentation).
-    data_path : Path
-        Path to data directory (for documentation).
-
-    Returns
-    -------
-    str
-        Complete Markdown document.
+    Generate a human-readable Markdown report summarizing validation results.
+    
+    Builds a Markdown document containing generation timestamp, config and data path references, a summary of pass/warn/fail/info counts, a results table (name, status, expected, actual, detail), and explanatory sections on data sources and validation criteria.
+    
+    Parameters:
+        results (list[dict]): Sequence of validation check dictionaries produced by the validation functions.
+        config_path (Path): Path to the validation configuration file (used only for inclusion in the report).
+        data_path (Path): Root path of the validated data (used only for inclusion in the report).
+    
+    Returns:
+        str: Complete Markdown document as a single string.
     """
     pass_count = sum(1 for r in results if r['status'] == 'PASS')
     warn_count = sum(1 for r in results if r['status'] == 'WARN')
