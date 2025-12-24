@@ -209,7 +209,7 @@ CREATE INDEX idx_wcs_footprint ON wcs_solutions USING GIST (footprint);
 
 CREATE TABLE spectral_grids (
     grid_id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    wcs_id UUID NOT NULL REFERENCES wcs_solutions(wcs_id) ON DELETE CASCADE,
+    wcs_id UUID NOT NULL UNIQUE REFERENCES wcs_solutions(wcs_id) ON DELETE CASCADE,
     
     -- Materialized wavelength array (absorbs GWA tilt variation)
     -- Extracted from WCS-TABLE extension of s3d files

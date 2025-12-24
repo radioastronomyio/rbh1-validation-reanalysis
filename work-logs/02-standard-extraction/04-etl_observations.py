@@ -12,7 +12,7 @@ Link         : https://github.com/radioastronomyio/rbh1-validation-reanalysis
 Description
 -----------
 Reads the data manifest CSV from Phase-01, opens each FITS file to extract
-full headers, computes SHA-256 checksums, and inserts into rbh1.observations
+full headers, computes MD5 checksums, and inserts into rbh1.observations
 with UPSERT semantics. Populates Zone 0 of the database schema.
 
 Usage

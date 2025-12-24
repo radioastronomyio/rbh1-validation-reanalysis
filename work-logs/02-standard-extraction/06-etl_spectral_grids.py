@@ -505,14 +505,20 @@ def run_etl(dry_run: bool = False) -> bool:
                 canonical_dl = dl_med
                 logger.info(f"  Canonical grid set from {filename} | hash={canonical_hash[:16]}.. | dl_med={canonical_dl:.3e} µm | mode={meta['mode']}")
             else:
-                max_abs = float(np.max(np.abs(wave_um - canonical_wave)))
-                max_rel = float(np.max(np.abs((wave_um - canonical_wave) / np.maximum(canonical_wave, 1e-30))))
-                match = max_abs <= tol_um
-                logger.info(
-                    f"  Grid compare | max_abs={max_abs:.3e} µm | tol={tol_um:.3e} µm | max_rel={max_rel:.3e} | hash={h[:16]}.. | match={match}"
-                )
-                if not match:
-                    logger.warning(f"  WARNING: {filename} wavelength grid differs from canonical beyond tolerance")
+                # Guard against length mismatch before element-wise comparison
+                if len(wave_um) != len(canonical_wave):
+                    logger.warning(
+                        f"  WARNING: {filename} has {len(wave_um)} channels vs canonical {len(canonical_wave)} - cannot compare element-wise"
+                    )
+                else:
+                    max_abs = float(np.max(np.abs(wave_um - canonical_wave)))
+                    max_rel = float(np.max(np.abs((wave_um - canonical_wave) / np.maximum(canonical_wave, 1e-30))))
+                    match = max_abs <= tol_um
+                    logger.info(
+                        f"  Grid compare | max_abs={max_abs:.3e} µm | tol={tol_um:.3e} µm | max_rel={max_rel:.3e} | hash={h[:16]}.. | match={match}"
+                    )
+                    if not match:
+                        logger.warning(f"  WARNING: {filename} wavelength grid differs from canonical beyond tolerance")
 
             # Prepare DB row (store 1:1 per wcs_id)
             out_rows.append(

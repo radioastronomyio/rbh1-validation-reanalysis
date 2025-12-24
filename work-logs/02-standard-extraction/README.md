@@ -280,7 +280,7 @@ Scripts use `python-dotenv` with custom environment file at `/opt/global-env/res
 
 ## Directory Contents
 
-```
+```text
 02-standard-extraction/
 ├── README.md                      # This file
 ├── 01-fits_introspection.py       # FITS metadata extraction
@@ -293,7 +293,7 @@ Scripts use `python-dotenv` with custom environment file at `/opt/global-env/res
 ├── 05-etl-import-log.txt          # Execution log
 ├── 06-etl_spectral_grids.py       # Zone 1 spectral ETL
 ├── 06-etl-import-log.txt          # Execution log
-├── 07-validation-visualizations.py # Validation dashboard generator
+├── 07-visualize_data_phase_02.py   # Validation dashboard generator
 ├── fits_data_dictionary.json      # Machine-readable FITS metadata
 ├── fits_data_dictionary.md        # Human-readable summary
 ├── migrations/                    # Schema migrations

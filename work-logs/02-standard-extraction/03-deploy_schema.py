@@ -99,6 +99,7 @@ def create_database_if_not_exists(conn_params: dict, database_name: str, dry_run
     Returns True if database was created, False if it already existed.
     """
     import psycopg2
+    from psycopg2 import sql
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
     
     # Connect to postgres database to check/create target
@@ -125,9 +126,11 @@ def create_database_if_not_exists(conn_params: dict, database_name: str, dry_run
                 print(f"[DRY RUN] Would create database: {database_name}")
                 return False
             
-            # Create database
+            # Create database using sql.Identifier for safe quoting
+            # Human: CREATE DATABASE doesn't support parameterized queries (%s),
+            # so we use psycopg2.sql.Identifier to safely quote the database name.
             print(f"Creating database: {database_name}")
-            cur.execute(f'CREATE DATABASE "{database_name}"')
+            cur.execute(sql.SQL('CREATE DATABASE {}').format(sql.Identifier(database_name)))
             print(f"✓ Database '{database_name}' created")
             return True
             
