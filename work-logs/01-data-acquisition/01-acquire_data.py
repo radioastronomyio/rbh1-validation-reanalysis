@@ -209,31 +209,17 @@ def download_program(
 
 def write_manifest(hst_manifest, jwst_manifest) -> None:
     """
-    Write a combined manifest CSV for provenance tracking.
-
-    The manifest records every downloaded file with metadata, enabling
-    verification that the correct data was used in the analysis. This is
-    a key component of reproducibility for the validation study.
-
-    Parameters
-    ----------
-    hst_manifest : astropy.table.Table or None
-        Download manifest from HST acquisition.
-    jwst_manifest : astropy.table.Table or None
-        Download manifest from JWST acquisition.
-
-    Output
-    ------
-    Writes to DATA_DIR/data_manifest.csv with columns:
-    - filename: Base filename of downloaded product
-    - instrument: HST or JWST
-    - download_timestamp: ISO 8601 UTC timestamp
-
-    Notes
-    -----
-    This manifest is distinct from the MAST-provided checksums. It records
-    *when* we downloaded the data, which matters because MAST periodically
-    reprocesses products with updated calibrations.
+    Write a combined provenance CSV listing downloaded files and their download timestamp.
+    
+    Parameters:
+        hst_manifest (astropy.table.Table | None): Table of HST download records as returned by astroquery or None.
+        jwst_manifest (astropy.table.Table | None): Table of JWST download records as returned by astroquery or None.
+    
+    Writes:
+        DATA_DIR/data_manifest.csv with columns:
+          - filename: base filename of the downloaded product
+          - instrument: "HST" or "JWST"
+          - download_timestamp: ISO 8601 UTC timestamp applied to every entry
     """
     manifest_path = DATA_DIR / "data_manifest.csv"
     timestamp = datetime.now(timezone.utc).isoformat()

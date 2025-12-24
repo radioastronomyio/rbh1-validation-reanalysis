@@ -149,16 +149,26 @@ plt.rcParams['font.size'] = 10
 
 
 def load_config(config_path: Path) -> dict:
-    """Load validation configuration from YAML file."""
+    """
+    Load validation configuration from a YAML file.
+    
+    Returns:
+        dict: Configuration dictionary parsed from the YAML file.
+    """
     with open(config_path, 'r') as f:
         return yaml.safe_load(f)
 
 
 def get_header_value(header, *keys):
     """
-    Get first available header value from list of possible keys.
-
-    FITS headers vary between instruments—this provides robust extraction.
+    Return the first value found in a FITS header for the provided keys.
+    
+    Parameters:
+        header: A mapping-like FITS header (e.g., astropy.io.fits.Header) to search.
+        *keys: One or more header key names (strings) to try in order.
+    
+    Returns:
+        The value for the first matching key, or `None` if no keys are present.
     """
     for key in keys:
         if key in header:
@@ -175,16 +185,9 @@ def get_header_value(header, *keys):
 
 def fig_pointing_sanity(hst_path: Path, jwst_path: Path, config: dict, output_dir: Path):
     """
-    Generate scatter plot of pointing offsets from target coordinates.
-
-    This figure provides immediate visual confirmation that all data comes
-    from the RBH-1 field. Points should cluster near the origin, well within
-    the tolerance circle.
-
-    Scientific interpretation:
-    - Tight clustering = consistent pointing across all visits
-    - Systematic offset = possible coordinate system issue
-    - Scatter outside tolerance = wrong field or acquisition failure
+    Plot pointing offsets (ΔRA, ΔDec) of HST and JWST exposures relative to the configured target.
+    
+    Reads RA/Dec from FITS headers in hst_path and jwst_path, converts offsets to arcminutes (applying cos(dec) correction for RA), and plots HST and JWST pointing positions with the target at the origin. Draws a tolerance circle using config['target']['pointing_tolerance_arcmin'] and annotates the maximum offset for each instrument when available. Saves the figure to output_dir/01_pointing_sanity.png.
     """
     target_ra = config['target']['ra_deg']
     target_dec = config['target']['dec_deg']
@@ -292,16 +295,15 @@ def fig_pointing_sanity(hst_path: Path, jwst_path: Path, config: dict, output_di
 
 def fig_footprint_overlay(hst_path: Path, jwst_path: Path, config: dict, output_dir: Path):
     """
-    Overlay JWST NIRSpec IFU footprints on HST DRC image.
-
-    This figure shows the spatial relationship between imaging (HST) and
-    spectroscopy (JWST). The IFU positions were chosen to capture the
-    kinematically interesting regions of the wake.
-
-    Known limitation: At full-field scale, the 3" IFU boxes may be too small
-    to see clearly. A zoomed version would be more informative.
-
-    TODO: [Phase01] Fix IFU boxes not visible - need zoom or larger box size
+    Overlay JWST NIRSpec IFU footprints on a suitable HST DRC image and save the result.
+    
+    Finds a 2D HST DRC image with valid WCS, locates JWST S3D files and extracts their IFU reference RA/Dec, and overlays up to four 3"×3" IFU footprint boxes and the configured target position on the DRC image. Saves the figure as "02_footprint_overlay.png" in the provided output directory and prints the written path. If no DRC image or no footprints are found the function exits gracefully after printing a warning.
+    
+    Parameters:
+        hst_path (Path): Directory containing HST products (used to locate DRC images).
+        jwst_path (Path): Directory containing JWST products (used to locate *_s3d.fits files).
+        config (dict): Configuration dictionary containing at least config['target']['ra_deg'] and config['target']['dec_deg'].
+        output_dir (Path): Directory where the PNG figure will be written.
     """
     # ---- Find a suitable HST DRC for background ----
     # Prefer HAP products for better astrometry
@@ -428,10 +430,15 @@ def fig_footprint_overlay(hst_path: Path, jwst_path: Path, config: dict, output_
 
 def fig_context_zoom(hst_path: Path, config: dict, output_dir: Path):
     """
-    Generate three-panel zoom: full field → RBH-1 region → tip region.
-
-    This figure helps orient viewers to the scale and appearance of the
-    linear feature. The 62 kpc wake is subtle and requires careful examination.
+    Create a three-panel zoom sequence (full field, RBH-1 region, tip region) from an HST DRC image and save it to output_dir/03_context_zoom.png.
+    
+    Searches hst_path for a DRC FITS file with a usable 2D science extension (prefers 'SCI' or the primary/data extensions). Converts the target sky coordinates found at config['target']['ra_deg'] and config['target']['dec_deg'] to pixel coordinates via the DRC WCS, marks the target, and produces three panels: the full field, a ±500 pixel RBH‑1 region, and a ±150 pixel tip region. If no suitable DRC is found or loaded, the function prints a warning and returns without writing a file.
+    
+    Parameters:
+        hst_path (Path): Path to the HST data directory (searched for *_drc.fits files).
+        config (dict): Configuration mapping that must contain target coordinates under
+            ['target']['ra_deg'] and ['target']['dec_deg'] (in degrees).
+        output_dir (Path): Directory where the PNG output will be written.
     """
     # ---- Find suitable DRC ----
     drc_files = list(hst_path.glob("hst_*_drc.fits"))
@@ -543,15 +550,14 @@ def fig_context_zoom(hst_path: Path, config: dict, output_dir: Path):
 
 def fig_wavelength_coverage(config: dict, output_dir: Path):
     """
-    Show expected emission lines at z=0.964 vs G140M/F100LP bandpass.
-
-    This figure is critical for understanding what diagnostics are available.
-    The G140M grating provides R~1000 spectroscopy from 0.97-1.84 μm.
-
-    Key findings:
-    - [O III] 4959,5007 and Hα 6563 are IN BAND (kinematic analysis possible)
-    - [O II] 3727,3729 is OUT OF BAND (no independent redshift from [O II])
-    - [S II] doublet is IN BAND (shock diagnostics possible)
+    Plot which common rest-frame emission lines at the target redshift fall inside the NIRSpec G140M/F100LP bandpass and save the figure to the output directory.
+    
+    Generates a horizontal wavelength display with the G140M/F100LP coverage shaded, vertical marks for each specified emission line at their observed wavelengths (solid for lines within 0.97–1.84 μm, dashed for lines outside), annotations for each line, a secondary axis in microns, and writes 04_wavelength_coverage.png to the provided output directory.
+    
+    Parameters:
+        config (dict): Configuration dictionary containing target metadata; must include
+            config['target']['redshift'] (float) used to compute observed wavelengths.
+        output_dir (Path): Directory where the PNG file will be written (file name: 04_wavelength_coverage.png).
     """
     z = config['target']['redshift']
 
@@ -640,14 +646,13 @@ def fig_wavelength_coverage(config: dict, output_dir: Path):
 
 def fig_noise_vs_wavelength(jwst_path: Path, output_dir: Path):
     """
-    Plot per-channel noise from S3D ERR extension.
-
-    This figure reveals wavelength-dependent noise properties:
-    - Thermal background rises above ~1.5 μm
-    - Detector artifacts may appear as noise spikes
-    - Low-noise regions are optimal for faint line detection
-
-    Used for planning integration time and setting error bars on measurements.
+    Create a plot of per-channel median noise derived from a JWST S3D ERR extension.
+    
+    Selects an S3D file from jwst_path, computes the median error for each spectral channel from the ERR cube, and saves the figure as `05_noise_vs_wavelength.png` in output_dir. If no S3D files or no ERR extension are found, the function prints a warning and returns without writing a file.
+    
+    Parameters:
+        jwst_path (Path): Directory containing JWST files; searched for `*_s3d.fits`.
+        output_dir (Path): Directory where the output PNG will be written.
     """
     s3d_files = list(jwst_path.glob("*_s3d.fits"))
     if not s3d_files:
@@ -723,17 +728,17 @@ def fig_noise_vs_wavelength(jwst_path: Path, output_dir: Path):
 
 def fig_dq_heatmaps(hst_path: Path, jwst_path: Path, output_dir: Path):
     """
-    Show NaN and DQ flagged pixel fractions by file type.
-
-    High flagged fractions in JWST IFU data are EXPECTED—the detector area
-    outside the 3"×3" aperture is masked. This figure documents that the
-    flagging is consistent and nominal.
-
-    Interpretation:
-    - HST FLC: ~8% DQ flagged (cosmic rays, bad pixels) is typical
-    - HST DRC: ~28% NaN (drizzle footprint edges) is normal
-    - JWST CAL: ~70% NaN is NORMAL for IFU (detector vs aperture)
-    - JWST S3D: ~50% NaN is NORMAL for reconstructed cubes
+    Create a 2×2 panel of bar charts showing per-file fractions of NaN and DQ-flagged pixels for HST FLC, HST DRC, JWST CAL, and JWST S3D files and save the figure to the output directory.
+    
+    For each category the function computes, per file:
+    - fraction of SCI pixels that are non-finite (NaN fraction)
+    - fraction of DQ pixels > 0 (DQ flagged fraction; zero if no DQ extension)
+    
+    Parameters:
+        hst_path (Path): Directory containing HST files (glob patterns hst_*_flc.fits and hst_*_drc.fits).
+        jwst_path (Path): Directory containing JWST files (glob patterns *_cal.fits and *_s3d.fits).
+        output_dir (Path): Directory where "06_dq_heatmaps.png" will be written.
+    
     """
     results = {'HST FLC': [], 'HST DRC': [], 'JWST CAL': [], 'JWST S3D': []}
 
@@ -850,10 +855,14 @@ def fig_dq_heatmaps(hst_path: Path, jwst_path: Path, output_dir: Path):
 
 def fig_inventory_bars(hst_path: Path, jwst_path: Path, output_dir: Path):
     """
-    Stacked bar chart of file counts by type.
-
-    Simple visual confirmation that the inventory matches expectations.
-    Complements the validation report with a graphical summary.
+    Create side-by-side horizontal bar charts summarizing file counts by product type for HST and JWST.
+    
+    Saves a PNG image named "07_inventory_bars.png" in the provided output directory that shows counts for HST categories (Original FLC, Original DRC, HAP FLC, HAP DRC, Skycell) and JWST categories (CAL, S3D, X1D), with each bar annotated by its count.
+    
+    Parameters:
+        hst_path (Path): Filesystem path to the HST data directory used to count HST products.
+        jwst_path (Path): Filesystem path to the JWST data directory used to count JWST products.
+        output_dir (Path): Directory where the generated PNG file will be written.
     """
     inventory = {
         'HST': {
@@ -913,14 +922,14 @@ def fig_inventory_bars(hst_path: Path, jwst_path: Path, output_dir: Path):
 
 def fig_acquisition_timeline(hst_path: Path, jwst_path: Path, output_dir: Path):
     """
-    Timeline of observation dates from FITS headers.
-
-    Documents the temporal baseline between HST discovery imaging (2023)
-    and JWST spectroscopic follow-up (2024).
-
-    Scientific context: The ~1 year gap theoretically allows proper motion
-    detection, but at z=0.964, even 1000 km/s produces negligible angular
-    motion over this baseline.
+    Create a two-row timeline of observation dates extracted from HST and JWST FITS headers and save it as "08_acquisition_timeline.png".
+    
+    The plot shows HST dates on the lower row and JWST dates on the upper row, with marker size proportional to the number of files for each date and numeric annotations indicating counts.
+    
+    Parameters:
+        hst_path (Path): Directory containing HST files (expects files matching hst_*_flc.fits).
+        jwst_path (Path): Directory containing JWST files (expects files matching *_cal.fits).
+        output_dir (Path): Directory where the generated PNG will be saved.
     """
     dates = {'HST': [], 'JWST': []}
 
@@ -997,9 +1006,12 @@ def fig_acquisition_timeline(hst_path: Path, jwst_path: Path, output_dir: Path):
 
 def main():
     """
-    Main entry point for Phase 01 visualization.
-
-    Generates all 8 QA figures and saves to the output directory.
+    Orchestrates generation of all Phase 01 QA visualization figures and writes them to the output directory.
+    
+    Validates that the provided data path contains required hst/ and jwst/ subdirectories, loads the validation configuration, ensures the output directory exists, and sequentially invokes the eight figure-generation functions that produce PNG files in the output directory.
+    
+    Returns:
+        int: Exit code — 0 on success, 1 if required input paths are missing.
     """
     parser = argparse.ArgumentParser(
         description="Generate Phase 01 data validation visualizations for RBH-1",
