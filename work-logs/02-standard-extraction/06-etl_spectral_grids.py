@@ -89,6 +89,19 @@ logger = logging.getLogger(__name__)
 
 
 def load_credentials() -> dict:
+    """
+    Load PostgreSQL connection credentials from the .env file and environment variables.
+    
+    Reads ENV_FILE with dotenv and returns a dict containing connection parameters. Keys:
+    - host: value of PGSQL01_HOST or "10.25.20.8" if unset.
+    - port: integer value of PGSQL01_PORT or 5432 if unset.
+    - database: DEFAULT_DATABASE constant from the module.
+    - user: value of PGSQL01_ADMIN_USER or "clusteradmin_pg01" if unset.
+    - password: value of PGSQL01_ADMIN_PASSWORD or empty string if unset.
+    
+    Returns:
+        dict: Mapping with keys "host", "port", "database", "user", and "password".
+    """
     logger.info(f"Loading credentials from: {ENV_FILE}")
     load_dotenv(ENV_FILE)
     return {
@@ -101,6 +114,18 @@ def load_credentials() -> dict:
 
 
 def create_pipeline_run(conn, stage_name: str) -> uuid.UUID:
+    """
+    Create a new pipeline run record in rbh1.pipeline_runs and return the generated run_id.
+    
+    The new row is inserted with status "RUNNING", a generated run_name, pipeline_version "0.1.0",
+    and started_at set to the current UTC timestamp; the transaction is committed.
+    
+    Parameters:
+        stage_name (str): Logical stage name to record for this pipeline run.
+    
+    Returns:
+        uuid.UUID: The UUID assigned to the created pipeline run.
+    """
     run_id = uuid.uuid4()
     run_name = f"etl-spectral-grids-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
     with conn.cursor() as cur:
@@ -124,6 +149,19 @@ def create_pipeline_run(conn, stage_name: str) -> uuid.UUID:
 
 
 def update_pipeline_run(conn, run_id: uuid.UUID, status: str, notes: Optional[str] = None):
+    """
+    Mark a pipeline run as completed by setting its completion timestamp, status, and optional notes.
+    
+    Parameters:
+        conn: A psycopg2-compatible database connection used to execute the update.
+        run_id (uuid.UUID): Identifier of the pipeline run to update.
+        status (str): New status string to store for the run (e.g., "SUCCESS", "FAILED").
+        notes (Optional[str]): Optional textual notes to record with the run.
+    
+    Side effects:
+        Updates the rbh1.pipeline_runs row matching `run_id`, sets `completed_at` to the current UTC time,
+        writes `status` and `notes`, and commits the transaction.
+    """
     with conn.cursor() as cur:
         cur.execute(
             """
@@ -138,9 +176,14 @@ def update_pipeline_run(conn, run_id: uuid.UUID, status: str, notes: Optional[st
 
 def get_s3d_targets(conn) -> list:
     """
-    Fetch (wcs_id, filename, file_path, naxis3) for s3d cubes.
-
-    We use wcs_solutions as the authoritative registry for valid cubes.
+    Retrieve metadata for s3d cubes registered in rbh1.wcs_solutions.
+    
+    Returns:
+        targets (list[dict]): List of records with keys:
+            - `wcs_id` (str): WCS identifier as a string.
+            - `filename` (str): Observation filename.
+            - `file_path` (str): Path to the file in storage.
+            - `naxis3` (int or None): Number of spectral channels if known, otherwise None.
     """
     with conn.cursor() as cur:
         cur.execute(
@@ -173,7 +216,12 @@ def get_s3d_targets(conn) -> list:
 
 
 def find_sci_extension(hdul: fits.HDUList) -> Optional[int]:
-    """Return first SCI extension index, else fallback to primary or ext 1 if data exists."""
+    """
+    Find the index of the first HDU named "SCI" that contains data, falling back to the primary HDU (0) or extension 1 if those contain data.
+    
+    Returns:
+        int | None: Index of the HDU containing science data, or `None` if no data-bearing extension is found.
+    """
     for i, hdu in enumerate(hdul):
         if hdu.name == "SCI" and hdu.data is not None:
             return i
@@ -190,11 +238,14 @@ def find_sci_extension(hdul: fits.HDUList) -> Optional[int]:
 
 def _to_um(values: np.ndarray, unit_str: Optional[str]) -> np.ndarray:
     """
-    Convert numeric spectral values into microns using astropy units when possible.
+    Convert an array of spectral values to microns.
     
-    AI NOTE: If unit_str is missing or unparsable, we assume meters. This is correct
-    for JWST NIRSpec cubes (CUNIT3='m' in WCS). If extending to other instruments
-    where default units differ (e.g., Angstroms for optical), this fallback must change.
+    Parameters:
+        values (np.ndarray): Numeric spectral values to convert.
+        unit_str (Optional[str]): Unit string describing `values` (e.g., 'm', 'um'). If `None` or unparsable, meters are assumed.
+    
+    Returns:
+        np.ndarray: Array of the input values converted to microns.
     """
     if unit_str is None or unit_str.strip() == "":
         # JWST cubes are commonly in meters in FITS WCS; if unit missing, assume meters conservatively.
@@ -213,14 +264,23 @@ def _to_um(values: np.ndarray, unit_str: Optional[str]) -> np.ndarray:
 
 def extract_wavelength_array_um(filepath: Path) -> Tuple[np.ndarray, dict]:
     """
-    Extract wavelength array (microns) from a JWST s3d cube.
-
-    Primary path:
-        - Build full WCS from SCI header
-        - Use wcs.sub(['spectral']) (or wcs.spectral) to compute wavelength for k=0..N-1
-
-    Fallback path:
-        - Use full 3D WCS at the spatial center and vary spectral pixel coordinate
+    Compute the 1D wavelength grid (in microns) for the spectral axis of a JWST s3d cube.
+    
+    Parameters:
+        filepath (Path): Path to the FITS cube file.
+    
+    Returns:
+        tuple: (wave_um, meta)
+            wave_um (np.ndarray): 1D array of wavelengths in microns for spectral pixel indices 0..N-1.
+            meta (dict): Metadata containing:
+                - naxis3 (int): number of spectral channels inferred from header or data shape.
+                - unit_str (Optional[str]): original unit string discovered for the spectral axis (or None).
+                - mode (str): which extraction method was used (e.g., "spectral_subwcs" or "full_wcs_center_fallback(...)").
+                - sci_ext (int): HDU index of the SCI extension used.
+    
+    Raises:
+        RuntimeError: If no SCI/primary extension with data is found, required NAXIS values cannot be determined,
+                      or the spectral axis cannot be identified during fallback.
     """
     with fits.open(filepath) as hdul:
         sci_idx = find_sci_extension(hdul)
@@ -314,7 +374,25 @@ def extract_wavelength_array_um(filepath: Path) -> Tuple[np.ndarray, dict]:
 
 
 def validate_wavelength_array(wave_um: np.ndarray, expected_n: Optional[int]) -> Tuple[bool, str, dict]:
-    """Run basic sanity checks and return (ok, reason, stats)."""
+    """
+    Validate a 1D wavelength array in microns and compute basic statistics.
+    
+    Parameters:
+        wave_um (np.ndarray): 1D array of wavelengths in microns.
+        expected_n (Optional[int]): Expected length of the array; if provided, a length mismatch causes validation to fail.
+    
+    Returns:
+        Tuple[bool, str, dict]: A tuple (ok, reason, stats) where:
+            - ok: `True` if the array passes all sanity checks, `False` otherwise.
+            - reason: Short human-readable explanation ("ok" on success or a failure reason).
+            - stats: On success, a dict with keys:
+                - "n_channels" (int): number of wavelength samples.
+                - "min_wavelength" (float): minimum wavelength in microns.
+                - "max_wavelength" (float): maximum wavelength in microns.
+                - "median_dlambda_um" (float): median positive channel spacing in microns.
+                - "mean_resolution" (float): median of lambda / delta_lambda as a resolution proxy.
+              On failure, an empty dict.
+    """
     if expected_n is not None and len(wave_um) != expected_n:
         return False, f"length mismatch: got {len(wave_um)} expected {expected_n}", {}
 
@@ -350,12 +428,14 @@ def validate_wavelength_array(wave_um: np.ndarray, expected_n: Optional[int]) ->
 
 def quantized_sha256(wave_um: np.ndarray, quantum_um: float) -> str:
     """
-    Quantize wavelength array to a grid and hash for stable comparisons.
+    Produce a stable SHA-256 fingerprint of a wavelength grid after quantization.
     
-    Direct float comparison is fragile due to IEEE-754 representation differences.
-    Quantizing to ~1e-9 µm bins before hashing produces stable fingerprints that
-    survive round-trip through different code paths while remaining sensitive to
-    meaningful wavelength differences.
+    Parameters:
+        wave_um (np.ndarray): Wavelength values in microns.
+        quantum_um (float): Quantization step in microns used to discretize the grid before hashing.
+    
+    Returns:
+        str: Hexadecimal SHA-256 digest of the quantized wavelength array.
     """
     q = np.round(wave_um / quantum_um).astype(np.int64)
     h = hashlib.sha256(q.tobytes()).hexdigest()
@@ -369,9 +449,17 @@ def quantized_sha256(wave_um: np.ndarray, quantum_um: float) -> str:
 
 def insert_spectral_grids(conn, rows: list) -> Tuple[int, int]:
     """
-    Upsert spectral grids by UNIQUE(wcs_id).
-
-    Returns (inserted_count, updated_count) estimated by pre-check.
+    Upsert multiple spectral grid records into rbh1.spectral_grids keyed by wcs_id.
+    
+    Parameters:
+        conn: A psycopg2 connection with an open transaction to the target database.
+        rows (list): Sequence of dicts each containing keys 'wcs_id', 'wavelength_array',
+            'n_channels', 'min_wavelength', 'max_wavelength', and 'mean_resolution'.
+    
+    Returns:
+        tuple: (inserted_count, updated_count) where `inserted_count` is the number of rows
+        that did not previously exist and were inserted, and `updated_count` is the number
+        of rows that matched existing wcs_id values and were updated.
     """
     if not rows:
         return 0, 0
@@ -441,6 +529,17 @@ def insert_spectral_grids(conn, rows: list) -> Tuple[int, int]:
 
 
 def run_etl(dry_run: bool = False) -> bool:
+    """
+    Run the ETL pipeline to extract wavelength grids from JWST s3d IFU cubes, validate and compare them against a canonical grid, and upsert results into the rbh1.spectral_grids table.
+    
+    When not in dry-run mode this function creates/updates a pipeline run record and writes or updates spectral grid rows in the database; in dry-run mode all extraction, validation, and comparisons are performed but no database writes are made.
+    
+    Parameters:
+        dry_run (bool): If True, perform processing without making persistent database changes or creating a pipeline run.
+    
+    Returns:
+        `true` if the ETL completed with no errors, `false` otherwise.
+    """
     logger.info("=" * 60)
     logger.info("RBH-1 SPECTRAL GRIDS ETL")
     logger.info("=" * 60)
@@ -575,6 +674,11 @@ def run_etl(dry_run: bool = False) -> bool:
 
 
 def main():
+    """
+    Command-line entry point that runs the spectral grids ETL and exits with an appropriate status code.
+    
+    Parses the `--dry-run` flag, invokes `run_etl` with that option, and exits the process with status 0 on success or 1 on failure.
+    """
     parser = argparse.ArgumentParser(description="ETL spectral_grids from JWST s3d cubes")
     parser.add_argument("--dry-run", action="store_true", help="Process files without database changes")
     args = parser.parse_args()

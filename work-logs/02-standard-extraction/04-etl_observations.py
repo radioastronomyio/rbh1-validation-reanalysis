@@ -73,14 +73,16 @@ logger = logging.getLogger(__name__)
 
 def classify_file(filename: str, manifest_instrument: str) -> dict:
     """
-    Classify a FITS file based on filename pattern.
+    Determine the FITS file classification and instrument type from its filename and a manifest instrument hint.
     
-    Infers instrument from filename (more robust than manifest values).
+    Returns:
+        dict: Mapping with keys:
+            - file_type: One of "flc", "drc", "cal", "s3d", "x1d", or "unknown".
+            - data_level: "CAL" for calibrated products or "RESAMPLED" for drizzled/combined products.
+            - instrument_type: "HST_WFC3" or "JWST_NIRSPEC".
     
-    Returns dict with:
-        - file_type: str (flc, drc, cal, s3d, x1d)
-        - data_level: str (CAL, RESAMPLED) - matches rbh1.data_level enum
-        - instrument_type: str (HST_WFC3, JWST_NIRSPEC)
+    Raises:
+        ValueError: If the instrument cannot be determined from the filename or normalized manifest value.
     """
     fn_lower = filename.lower()
     
@@ -134,7 +136,17 @@ def classify_file(filename: str, manifest_instrument: str) -> dict:
 # =============================================================================
 
 def extract_header_value(header: fits.Header, keys: list, default: Any = None) -> Any:
-    """Extract first matching key from header, with fallback default."""
+    """
+    Return the first non-blank value found in a FITS header for the provided keys, or the default if none are present.
+    
+    Parameters:
+        header (fits.Header): FITS header to search.
+        keys (list): Ordered list of header keywords to check.
+        default (Any): Value to return if none of the keys yield a usable value.
+    
+    Returns:
+        Any: The first header value that is not None or an empty/whitespace-only string, otherwise `default`.
+    """
     for key in keys:
         if key in header:
             val = header[key]
@@ -147,12 +159,18 @@ def extract_header_value(header: fits.Header, keys: list, default: Any = None) -
 
 def sanitize_header_for_json(header: fits.Header) -> dict:
     """
-    Convert FITS header to JSON-serializable dict.
+    Convert a FITS header into a JSON-serializable dictionary suitable for storage.
     
-    Handles:
-        - COMMENT and HISTORY as arrays
-        - Removes empty/undefined values
-        - Converts non-serializable types
+    - Skips blank keywords and keys with undefined (`None`) values.
+    - Aggregates `COMMENT` and `HISTORY` cards into lists under `_COMMENTS` and `_HISTORY`.
+    - Preserves booleans and numeric values; represents NaN and infinite numeric values as their string forms.
+    - Trims string values and converts other non-serializable types to strings.
+    
+    Parameters:
+        header (fits.Header): FITS header to sanitize.
+    
+    Returns:
+        dict: JSON-safe mapping of header keywords to values, including optional `_COMMENTS` and `_HISTORY` lists when present.
     """
     result = {}
     comments = []
@@ -209,9 +227,27 @@ def sanitize_header_for_json(header: fits.Header) -> dict:
 
 def extract_fits_metadata(filepath: Path, classification: dict) -> dict:
     """
-    Extract metadata from FITS file for observations table.
+    Extracts observation metadata from a FITS file for insertion into the observations table.
     
-    Returns dict matching observations table columns.
+    Parameters:
+        filepath (Path): Path to the FITS file to read.
+        classification (dict): Classification produced by classify_file; must include "instrument_type" (e.g., "HST_WFC3" or "JWST_NIRSPEC") to select instrument-specific extraction.
+    
+    Returns:
+        dict: Mapping of observation fields:
+            - program_id (str): Program identifier (prefixed with "GO-").
+            - target_name (str): Target name or "RBH-1" if absent.
+            - date_obs (datetime): Observation timestamp with UTC timezone.
+            - exp_time (float): Exposure time in seconds (coerced to > 0, defaults to 1.0).
+            - filter (str): Filter name (instrument-dependent default applied).
+            - disperser (str | None): Disperser/grating for JWST or None for HST.
+            - aperture (str | None): Aperture or None if not present.
+            - crds_context (str | None): CRDS context/version if present.
+            - cal_version (str | None): Calibration/version string if present.
+            - header_json (dict): JSON-serializable representation of the FITS header.
+    
+    Raises:
+        ValueError: If DATE-OBS is missing or cannot be parsed.
     """
     with fits.open(filepath) as hdul:
         primary_hdu = hdul[0]
@@ -297,7 +333,12 @@ def extract_fits_metadata(filepath: Path, classification: dict) -> dict:
 # =============================================================================
 
 def compute_md5(filepath: Path) -> str:
-    """Compute MD5 checksum of file."""
+    """
+    Compute the MD5 checksum of a file.
+    
+    Returns:
+        str: Hexadecimal MD5 digest of the file contents.
+    """
     hash_md5 = hashlib.md5()
     with open(filepath, "rb") as f:
         for chunk in iter(lambda: f.read(8192), b""):
@@ -314,7 +355,17 @@ def get_file_size(filepath: Path) -> int:
 # =============================================================================
 
 def load_credentials() -> dict:
-    """Load database credentials from environment file."""
+    """
+    Load database connection credentials by reading the module ENV_FILE and environment variables.
+    
+    Returns:
+        dict: Mapping with keys:
+            host (str): Database host; defaults to "10.25.20.8" if PGSQL01_HOST is not set.
+            port (int): Database port; defaults to 5432 if PGSQL01_PORT is not set.
+            database (str): Database name from DEFAULT_DATABASE.
+            user (str): Database user; defaults to "clusteradmin_pg01" if PGSQL01_ADMIN_USER is not set.
+            password (str): Database password; defaults to an empty string if PGSQL01_ADMIN_PASSWORD is not set.
+    """
     logger.info(f"Loading credentials from: {ENV_FILE}")
     load_dotenv(ENV_FILE)
     
@@ -328,7 +379,13 @@ def load_credentials() -> dict:
 
 
 def create_pipeline_run(conn, stage_name: str) -> uuid.UUID:
-    """Register this ETL run in pipeline_runs table."""
+    """
+    Register a new pipeline run record in rbh1.pipeline_runs and persist it to the database.
+    
+    Inserts a pipeline run row with the provided stage name, a generated run identifier and name, timestamps the start, and commits the transaction.
+    
+    @returns uuid.UUID: The newly generated run identifier for the registered pipeline run.
+    """
     run_id = uuid.uuid4()
     run_name = f"etl-observations-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
     
@@ -351,7 +408,16 @@ def create_pipeline_run(conn, stage_name: str) -> uuid.UUID:
 
 
 def update_pipeline_run(conn, run_id: uuid.UUID, status: str, notes: str | None = None):
-    """Update pipeline run status on completion."""
+    """
+    Mark a pipeline run completed by setting its completion timestamp, status, and optional notes.
+    
+    This updates the rbh1.pipeline_runs row identified by `run_id`, setting `completed_at` to the current UTC time, `status` to the provided value, and `notes` to the provided text, then commits the transaction.
+    
+    Parameters:
+        run_id (uuid.UUID): Identifier of the pipeline run to update.
+        status (str): New status to record for the run (e.g., "COMPLETED", "COMPLETED_WITH_ERRORS").
+        notes (str | None): Optional explanatory notes to store with the run.
+    """
     with conn.cursor() as cur:
         cur.execute("""
             UPDATE rbh1.pipeline_runs 
@@ -368,14 +434,24 @@ def update_pipeline_run(conn, run_id: uuid.UUID, status: str, notes: str | None 
 
 def insert_observations(conn, records: list, run_id: uuid.UUID) -> tuple[int, int, int]:
     """
-    Batch insert observations with UPSERT.
+    Upsert a batch of observation records into rbh1.observations and record which pipeline run ingested them.
     
-    On conflict (filename exists):
-        - Updates mutable metadata (file_size, checksum, header, provenance)
-        - Keeps obs_id stable
-        - Logs warning if checksum changed (file was reprocessed)
+    Performs a batch INSERT ... ON CONFLICT (filename) DO UPDATE: preserves existing `obs_id`, updates mutable metadata (file_size_bytes, checksum_md5, header_json, crds_context, cal_version, ingested_by_run) and resets `ingested_at` to NOW(). Logs a warning when an existing file's checksum changes.
     
-    Returns (inserted_count, updated_count, unchanged_count).
+    Parameters:
+        conn: Active database connection (cursor is obtained from this connection).
+        records (list): List of observation dictionaries. Each record must contain the keys:
+            "program_id", "instrument_type", "target_name", "date_obs", "exp_time",
+            "filter", "disperser", "aperture", "data_level", "filename", "file_type",
+            "file_path", "file_size_bytes", "checksum_md5", "crds_context",
+            "cal_version", "header_json".
+        run_id (uuid.UUID): UUID of the pipeline run ingesting these records.
+    
+    Returns:
+        tuple[int, int, int]: (inserted_count, updated_count, unchanged_count)
+            inserted_count: number of new rows added to the table;
+            updated_count: number of records that matched existing filenames (were updated);
+            unchanged_count: number of matched records left unchanged (always 0 with current behavior).
     """
     if not records:
         return 0, 0, 0
@@ -471,7 +547,17 @@ def insert_observations(conn, records: list, run_id: uuid.UUID) -> tuple[int, in
 # =============================================================================
 
 def run_etl(dry_run: bool = False):
-    """Main ETL pipeline."""
+    """
+    Orchestrates the end-to-end ETL from the FITS manifest into the observations database table and returns whether processing completed without errors.
+    
+    Performs: manifest loading, per-file classification and FITS metadata extraction, file checksum and size calculation, and batch upsert into the observations table. Supports a dry-run mode that performs all processing without making database changes and records a synthetic pipeline run.
+    
+    Parameters:
+        dry_run (bool): If True, do not write to the database or create a persistent pipeline run; processing is simulated and a synthetic run ID is used.
+    
+    Returns:
+        bool: `true` if no file-level errors were encountered during processing, `false` otherwise.
+    """
     
     logger.info("=" * 60)
     logger.info("RBH-1 OBSERVATIONS ETL")
@@ -592,6 +678,11 @@ def run_etl(dry_run: bool = False):
 
 
 def main():
+    """
+    Parse command-line arguments, run the ETL pipeline, and exit the process with status 0 on success or 1 on failure.
+    
+    This function accepts a --dry-run flag to process files without performing database writes, invokes run_etl with that flag, and terminates the program with an exit code reflecting the pipeline outcome.
+    """
     parser = argparse.ArgumentParser(description="ETL observations from FITS manifest")
     parser.add_argument("--dry-run", action="store_true", 
                         help="Process files without database changes")

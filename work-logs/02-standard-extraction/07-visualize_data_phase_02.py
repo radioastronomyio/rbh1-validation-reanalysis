@@ -58,6 +58,21 @@ DEFAULT_DB = "rbh1_validation"
 # DB helpers
 # -----------------------------
 def load_credentials(env_file: str, database: str) -> dict[str, str | int]:
+    """
+    Load PostgreSQL connection settings from an environment file and return a credentials mapping.
+    
+    Parameters:
+        env_file (str): Path to a dotenv file whose variables override defaults.
+        database (str): Database name to include in the returned credentials.
+    
+    Returns:
+        dict[str, str | int]: Connection parameters with keys:
+            - host: hostname or IP address (str)
+            - port: TCP port (int)
+            - database: database name (str)
+            - user: database user (str)
+            - password: database password (str)
+    """
     load_dotenv(env_file)
     return {
         "host": os.getenv("PGSQL01_HOST", "10.25.20.8"),
@@ -70,6 +85,16 @@ def load_credentials(env_file: str, database: str) -> dict[str, str | int]:
 
 def query_df(conn: psycopg2.extensions.connection, sql: str) -> pd.DataFrame:
     # pandas type stubs expect SQLAlchemy connection; psycopg2 works fine at runtime
+    """
+    Execute the given SQL query using the provided psycopg2 connection and return the result as a pandas DataFrame.
+    
+    Parameters:
+        conn (psycopg2.extensions.connection): Open PostgreSQL connection to run the query.
+        sql (str): SQL query string to execute.
+    
+    Returns:
+        pd.DataFrame: Query results loaded into a pandas DataFrame with columns matching the selected fields.
+    """
     return pd.read_sql_query(sql, conn)  # type: ignore[arg-type]
 
 
@@ -78,11 +103,16 @@ def query_df(conn: psycopg2.extensions.connection, sql: str) -> pd.DataFrame:
 # -----------------------------
 def parse_polygon_wkt(wkt: str) -> Tuple[np.ndarray, np.ndarray]:
     """
-    Parse WKT like POLYGON((x1 y1,x2 y2,...)) to coordinate arrays.
+    Extract x and y coordinate arrays from a POLYGON WKT string.
     
-    Returns (xs, ys) as numpy arrays. Only supports simple POLYGON geometry,
-    matching the schema constraint (footprint is NOT NULL POLYGON, not MULTI).
-    Will raise ValueError for MULTIPOLYGON or other geometry types.
+    Parameters:
+        wkt (str): Well-known text in the form "POLYGON((x1 y1,x2 y2,...))" representing a single polygon ring.
+    
+    Returns:
+        Tuple[np.ndarray, np.ndarray]: Two numpy arrays (xs, ys) of float64 containing the polygon's x and y coordinates in order.
+    
+    Raises:
+        ValueError: If the WKT is not a simple POLYGON in the expected format or contains malformed coordinate pairs.
     """
     s = wkt.strip()
     if not s.startswith("POLYGON((") or not s.endswith("))"):
@@ -103,6 +133,18 @@ def parse_polygon_wkt(wkt: str) -> Tuple[np.ndarray, np.ndarray]:
 
 
 def polygon_bounds_from_wkt(wkt: str) -> Tuple[float, float, float, float]:
+    """
+    Compute the axis-aligned bounding box of a POLYGON WKT string.
+    
+    Parameters:
+        wkt (str): WKT representation of a POLYGON, e.g. "POLYGON((x1 y1, x2 y2, ...))".
+    
+    Returns:
+        tuple: (min_x, max_x, min_y, max_y) as floats representing the polygon bounds.
+    
+    Raises:
+        ValueError: If the WKT is not a supported POLYGON or is malformed.
+    """
     xs, ys = parse_polygon_wkt(wkt)
     return float(xs.min()), float(xs.max()), float(ys.min()), float(ys.max())
 
@@ -112,10 +154,10 @@ def polygon_bounds_from_wkt(wkt: str) -> Tuple[float, float, float, float]:
 # -----------------------------
 def _classify_footprint_row(filename: str, file_type: str) -> str:
     """
-    Classify footprint for visualization layering.
+    Determine plot classification for a footprint row.
     
-    Skycell mosaics (hst_skycell-*) are distinguished from individual exposures
-    because they have much larger footprints and need different draw styling.
+    Returns:
+        "skycell" if `filename` starts with "hst_skycell-", otherwise the provided `file_type`.
     """
     if filename.startswith("hst_skycell-"):
         return "skycell"
@@ -124,7 +166,13 @@ def _classify_footprint_row(filename: str, file_type: str) -> str:
 
 def plot_footprint_overlay_with_inset(ax: Axes, wcs_df: pd.DataFrame) -> None:
     """
-    Main footprint overlay plus inset zoom around the JWST s3d union region.
+    Plot WCS footprint polygons on the given axes and add an inset zoom focused on the JWST `s3d` union region.
+    
+    Plots polygon outlines from wcs_df onto ax using a draw order that renders larger/background footprints before smaller/foreground ones. If any rows classify as `s3d`, computes the union bounding box of those footprints, expands it with a small margin, and creates a lower-left inset showing the `flc`, `drc`, and `s3d` footprints within that zoomed region.
+    
+    Parameters:
+        ax (Axes): Matplotlib axes to draw the main overlay and inset onto.
+        wcs_df (pd.DataFrame): DataFrame with at least the columns `filename`, `file_type`, and `footprint_wkt`. `filename` and `file_type` will be treated as strings; rows are categorized into footprint classes (e.g., `skycell`, `flc`, `drc`, `s3d`) for plotting order and styling.
     """
     df = wcs_df.copy()
     df["filename"] = df["filename"].astype(str)
@@ -138,6 +186,14 @@ def plot_footprint_overlay_with_inset(ax: Axes, wcs_df: pd.DataFrame) -> None:
     order = ["skycell", "flc", "drc", "s3d"]
 
     def draw(ax_: Axes, subset: pd.DataFrame, emphasize_s3d: bool = True) -> None:
+        """
+        Plot polygon footprints from `subset` onto the provided Matplotlib Axes.
+        
+        Parameters:
+            ax_ (Axes): Matplotlib axes to draw the polygons on.
+            subset (pd.DataFrame): DataFrame containing footprint rows. Must include a string-valued "class" column and a "footprint_wkt" column with POLYGON WKT strings.
+            emphasize_s3d (bool): If True, render rows with class "s3d" with larger linewidth and higher opacity; "drc" and "flc" are drawn with medium weight, all other classes with thinner, more transparent lines.
+        """
         for cls in order:
             sub = subset[subset["class"] == cls]
             if sub.empty:
@@ -190,7 +246,15 @@ def plot_footprint_overlay_with_inset(ax: Axes, wcs_df: pd.DataFrame) -> None:
 
 
 def plot_span_scatter(ax: Axes, spans_df: pd.DataFrame) -> None:
-    """dra_arcsec vs ddec_arcsec scatter; log axes + y=x reference."""
+    """
+    Plot footprint span regimes as ΔRA vs ΔDec in arcseconds on log-log axes.
+    
+    Creates a scatter plot of `dra_arcsec` against `ddec_arcsec`, colored by `file_type` and styled to highlight skycell footprints; draws a dashed y=x reference line across the data range and sets axis labels and title.
+    
+    Parameters:
+        ax (Axes): Matplotlib axes to draw the scatter into.
+        spans_df (pd.DataFrame): DataFrame containing at least `dra_arcsec` and `ddec_arcsec` columns; if present, `filename` and `file_type` are used to determine point style and hue (rows with `filename` starting with "hst_skycell-" are treated as skycells).
+    """
     df = spans_df.copy()
     df["filename"] = df["filename"].astype(str)
     df["file_type"] = df["file_type"].astype(str)
@@ -220,7 +284,14 @@ def plot_span_scatter(ax: Axes, spans_df: pd.DataFrame) -> None:
 
 def plot_crval_offsets_arcsec(ax: Axes, wcs_df: pd.DataFrame, annotate_skycells: bool = True) -> None:
     """
-    CRVAL offsets (arcsec) relative to median pointing for legibility.
+    Plot CRVAL pointing offsets in arcseconds relative to the median pointing.
+    
+    Computes ΔRA scaled by cos(median Dec) and ΔDec (both in arcseconds), draws a scatter colored by `file_type` and styled for skycells, and adds dashed zero-reference lines. If `annotate_skycells` is True, labels points whose `filename` starts with "hst_skycell-".
+    
+    Parameters:
+        ax (matplotlib.axes.Axes): Axes to draw the scatter on.
+        wcs_df (pd.DataFrame): DataFrame containing at least the columns `crval1`, `crval2`, `filename`, and `file_type`.
+        annotate_skycells (bool): If True, annotate skycell points (filenames beginning with "hst_skycell-") with shortened labels.
     """
     df = wcs_df.copy()
     df["filename"] = df["filename"].astype(str)
@@ -264,13 +335,13 @@ def plot_crval_offsets_arcsec(ax: Axes, wcs_df: pd.DataFrame, annotate_skycells:
 
 def compute_pixscale_arcsec(df: pd.DataFrame) -> pd.Series:
     """
-    Approximate pixel scale from CD matrix.
+    Approximate per-row pixel scale in arcseconds from a CD matrix.
     
-    Computes sqrt(CD1_1^2 + CD2_1^2) for x-axis and sqrt(CD1_2^2 + CD2_2^2) for y-axis,
-    then averages. This is an approximation that assumes near-orthogonal axes and
-    ignores shear/rotation, which is fine for visualization of scale regimes.
+    Parameters:
+        df (pd.DataFrame): DataFrame containing numeric columns 'cd1_1', 'cd2_1', 'cd1_2', 'cd2_2'.
     
-    Returns a pandas Series of floats in arcsec/pix.
+    Returns:
+        pd.Series: Pixel scale in arcseconds per pixel for each row, computed as the average of the x and y scales derived from the CD matrix.
     """
     cd1_1 = df["cd1_1"].to_numpy(dtype=np.float64)
     cd2_1 = df["cd2_1"].to_numpy(dtype=np.float64)
@@ -284,7 +355,13 @@ def compute_pixscale_arcsec(df: pd.DataFrame) -> pd.Series:
 
 def plot_pixel_scale_strip(ax: Axes, wcs_df: pd.DataFrame) -> None:
     """
-    Pixel scale visualization: strip plot + median markers.
+    Plot estimated pixel scale (arcsec/pix) per file_type as a jittered strip plot and overlay median markers.
+    
+    Parameters:
+        ax (matplotlib.axes.Axes): Axes to draw the plot on.
+        wcs_df (pandas.DataFrame): DataFrame containing WCS columns required to estimate pixel scale
+            (cd1_1, cd2_1, cd1_2, cd2_2) and a 'file_type' column. A copy of this DataFrame is used
+            and a 'pixscale_arcsec' column is computed prior to plotting.
     """
     df = wcs_df.copy()
     df["file_type"] = df["file_type"].astype(str)
@@ -311,6 +388,13 @@ def plot_pixel_scale_strip(ax: Axes, wcs_df: pd.DataFrame) -> None:
 
 
 def plot_dlambda_vs_lambda(ax: Axes, wave_um: np.ndarray) -> None:
+    """
+    Plot the spectral grid spacing Δλ as a function of wavelength.
+    
+    Parameters:
+        ax (matplotlib.axes.Axes): Axis to draw the line plot on.
+        wave_um (numpy.ndarray): One-dimensional array of wavelengths in micrometers; successive differences (Δλ) are computed and plotted against the later wavelength of each pair.
+    """
     dl = np.diff(wave_um)
     lam = wave_um[1:]
     ax.plot(lam, dl, linewidth=2.0)
@@ -320,6 +404,13 @@ def plot_dlambda_vs_lambda(ax: Axes, wave_um: np.ndarray) -> None:
 
 
 def plot_Rgrid_vs_lambda(ax: Axes, wave_um: np.ndarray) -> None:
+    """
+    Plot sampling proxy R = λ/Δλ versus wavelength on the provided Axes.
+    
+    Parameters:
+        ax (matplotlib.axes.Axes): Target axes to draw the curve.
+        wave_um (numpy.ndarray): 1D array of wavelengths in micrometers; the proxy R is computed using adjacent differences, so the plotted wavelengths correspond to wave_um[1:].
+    """
     dl = np.diff(wave_um)
     lam = wave_um[1:]
     R = lam / dl
@@ -333,6 +424,14 @@ def plot_Rgrid_vs_lambda(ax: Axes, wave_um: np.ndarray) -> None:
 # Main
 # -----------------------------
 def main() -> None:
+    """
+    Generate Phase-02 Zone 1 validation plots from the database and save or display them.
+    
+    Parses command-line arguments (--env, --db, --outdir, --format, --show, --standalone), loads database credentials, queries WCS solutions, footprint spans, and a representative s3d spectral grid, and then builds a 2x3 dashboard of validation plots (footprints with inset, span scatter, CRVAL offsets, pixel-scale strip, Δλ vs λ, and R_grid vs λ). The dashboard is written to <outdir>/phase02_validation_dashboard.{png|pdf}. If --standalone is provided, individual plot files are also written to the output directory with names phase02_footprints_inset.{format}, phase02_span_regimes.{format}, phase02_dlambda_vs_lambda.{format}, phase02_Rgrid_vs_lambda.{format}, phase02_pixel_scale_strip.{format}, and phase02_crval_offsets.{format}. If --show is provided, plots are displayed interactively; otherwise figures are closed.
+    
+    Raises:
+        RuntimeError: If no s3d spectral_grid row is found (spectral data required to compute wavelength-derived panels).
+    """
     ap = argparse.ArgumentParser()
     ap.add_argument("--env", default=DEFAULT_ENV_FILE, help="Path to env file with DB creds")
     ap.add_argument("--db", default=DEFAULT_DB, help="Database name")

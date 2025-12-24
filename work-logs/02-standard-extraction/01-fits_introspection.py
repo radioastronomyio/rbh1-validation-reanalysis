@@ -153,7 +153,19 @@ KEYWORD_CATEGORIES = {
 
 
 def categorize_keyword(keyword: str) -> str:
-    """Assign a header keyword to a semantic category."""
+    """
+    Map a FITS header keyword to a semantic category.
+    
+    Matches the given keyword (case-insensitive) against patterns in KEYWORD_CATEGORIES:
+    - exact matches or patterns ending with `*` (prefix match) are supported.
+    - If no configured pattern matches, applies simple prefix-based fallbacks (e.g., `PA_/V2_/V3_` → `wcs_spatial`, `S_/R_` or `D*...DARK` → `calibration`).
+    
+    Parameters:
+        keyword (str): The header keyword to categorize (case-insensitive).
+    
+    Returns:
+        str: The category name from KEYWORD_CATEGORIES or `"other"` when no category applies.
+    """
     keyword_upper = keyword.upper()
     
     for category, patterns in KEYWORD_CATEGORIES.items():
@@ -177,11 +189,30 @@ def categorize_keyword(keyword: str) -> str:
 
 def extract_header(header: fits.Header) -> dict:
     """
-    Extract all keywords from a FITS header, categorized and with metadata.
+    Extracts and categorizes informational keywords from a FITS header and returns per-key metadata plus simple statistics.
     
-    Returns dict with:
-    - keywords: {category: [{keyword, value, comment, dtype}, ...]}
-    - stats: {total_keywords, by_category}
+    Parameters:
+        header (astropy.io.fits.Header): FITS header to inspect.
+    
+    Returns:
+        dict: {
+            "keywords": {
+                "<category>": [
+                    {
+                        "keyword": "<KEYNAME>",        # header keyword name
+                        "value": <value_or_string>,    # header value (NaNs/inf converted to string)
+                        "comment": "<comment>",        # comment associated with the keyword or empty string
+                        "dtype": "<py_type_name>"      # inferred Python type name (e.g., "int", "float", "str", "bool")
+                    },
+                    ...
+                ],
+                ...
+            },
+            "stats": {
+                "total_keywords": int,            # total number of extracted keywords across all categories
+                "by_category": { "<category>": int, ... }  # counts per category
+            }
+        }
     """
     categorized: dict[str, list[dict]] = defaultdict(list)
     
@@ -238,7 +269,25 @@ def extract_header(header: fits.Header) -> dict:
 
 
 def analyze_image_data(data: np.ndarray) -> dict:
-    """Analyze an image or cube data array."""
+    """
+    Produce descriptive metadata and finite-value statistics for a 2D image or 3D spectral cube.
+    
+    Returns:
+        dict: Analysis results. On success, the dictionary includes:
+            - shape (list[int]): array shape.
+            - ndim (int): number of dimensions.
+            - dtype (str): numpy dtype string.
+            - size_bytes (int): number of bytes used by the array.
+            - interpretation (str): 'image' for 2D or 'spectral_cube' for 3D.
+            - For 3D cubes: n_wavelength, n_spatial_y, n_spatial_x (ints).
+            - For 2D images: n_rows, n_cols (ints).
+            - n_finite (int): count of finite values.
+            - n_nan (int): count of non-finite (NaN/Inf) values.
+            - nan_fraction (float): fraction of non-finite values (0.0–1.0).
+            - statistics (dict, optional): present if at least one finite value exists; contains
+              min, max, mean, median, std, percentile_01, percentile_99 (all floats).
+        If `data` is None, returns {'error': 'No data'}.
+    """
     if data is None:
         return {'error': 'No data'}
     
@@ -285,7 +334,28 @@ def analyze_image_data(data: np.ndarray) -> dict:
 
 
 def analyze_table_data(table_hdu: fits.BinTableHDU) -> dict:
-    """Analyze a binary table extension."""
+    """
+    Produce metadata and basic numeric statistics for columns in a FITS binary table HDU.
+    
+    Parameters:
+        table_hdu (astropy.io.fits.BinTableHDU): Binary table HDU to analyze.
+    
+    Returns:
+        dict: Summary with keys:
+            - n_rows (int): Number of rows in the table.
+            - n_columns (int): Number of defined columns.
+            - columns (list): Per-column metadata objects. Each object contains:
+                - name (str): Column name.
+                - format (str): FITS column format string.
+                - dtype (str|None): NumPy dtype derived from column data when available.
+                - unit (str, optional): Column unit if present.
+                - dim (str, optional): Column dimension descriptor if present.
+                - null_value (any, optional): Column null value if defined.
+                - sample_stats (dict, optional): Basic numeric stats for finite sampled values with keys:
+                    - min (float): Minimum finite value.
+                    - max (float): Maximum finite value.
+                    - n_finite (int): Count of finite values.
+    """
     columns = table_hdu.columns
     table_data = table_hdu.data
     
@@ -351,7 +421,25 @@ def analyze_table_data(table_hdu: fits.BinTableHDU) -> dict:
 
 
 def extract_wavelength_grid(hdul: fits.HDUList, sci_header: fits.Header) -> dict | None:
-    """Extract wavelength information from spectral cubes or 1D spectra."""
+    """
+    Extract wavelength coverage and grid information from a FITS HDU list using either WCS keywords (for spectral cubes) or a table wavelength column (for 1D spectra).
+    
+    Parameters:
+        hdul (fits.HDUList): Open FITS HDU list to examine for a wavelength-producing HDU (cube or binary table).
+        sci_header (fits.Header): Science header (typically from the science extension or primary) used to read WCS spectral keywords.
+    
+    Returns:
+        dict | None: A dictionary describing the wavelength grid when found, otherwise `None`. Possible keys:
+            - source (str): 'wcs_cube' when derived from WCS keywords or 'table_column' when derived from a WAVELENGTH table column.
+            - n_channels (int): Number of spectral channels / wavelength samples.
+            - wave_min (float): Minimum wavelength in the unit given by `wave_unit`.
+            - wave_max (float): Maximum wavelength in the unit given by `wave_unit`.
+            - wave_unit (str): Unit of `wave_min`/`wave_max` (e.g., 'um', 'Angstrom', or 'unknown').
+            - wave_step (float): Spectral increment from WCS `CDELT3` when `source` is 'wcs_cube'.
+            - wave_min_angstrom (float), wave_max_angstrom (float): Angstrom-converted min/max when WCS method is used.
+            - wave_step_median (float): Median step between sorted wavelength values (when derived from a table column and multiple samples exist).
+            - wave_step_std (float): Standard deviation of steps between sorted wavelength values (when derived from a table column).
+    """
     result: dict = {}
     
     # Method 1: WCS keywords for cubes
@@ -448,9 +536,20 @@ def extract_wavelength_grid(hdul: fits.HDUList, sci_header: fits.Header) -> dict
 
 def introspect_fits_file(filepath: Path) -> dict:
     """
-    Complete introspection of a single FITS file.
+    Produce a detailed metadata dictionary describing the contents and structure of a FITS file for data-model and schema design.
     
-    Returns comprehensive metadata for schema design.
+    Parameters:
+        filepath (Path): Path to the FITS file to inspect.
+    
+    Returns:
+        result (dict): Dictionary with keys:
+            - filename: base filename
+            - filepath: string path
+            - file_size_bytes: file size in bytes
+            - n_hdus: number of HDUs (when available)
+            - hdus: list of per-HDU metadata objects (index, name, type, optional 'header' and 'data' analyses)
+            - wavelength_grid: extracted wavelength information or None
+            - errors: list of error messages encountered during introspection
     """
     result: dict = {
         'filename': filepath.name,
@@ -508,7 +607,29 @@ def introspect_fits_file(filepath: Path) -> dict:
 
 
 def process_file_type(data_path: Path, file_type: str, config: dict) -> dict:
-    """Process all files of a given type, sampling as configured."""
+    """
+    Collect a sample of FITS files for a given file type, run introspection on each sampled file, and return a summary for that type.
+    
+    Parameters:
+        data_path (Path): Root path containing the configured subdirectory for the file type.
+        file_type (str): Key identifying the file type being processed.
+        config (dict): Configuration for the file type. Required keys:
+            - 'subdir' (str): Subdirectory under data_path to search.
+            - 'pattern' (str): Glob pattern to match files.
+            - 'description' (str): Human-readable description.
+            Optional:
+            - 'sample_count' (int): Number of files to sample (defaults to 2).
+    
+    Returns:
+        dict: Summary for the file type containing:
+            - 'file_type': the provided file_type key.
+            - 'description': description from config.
+            - 'pattern': glob pattern used.
+            - 'total_files': number of matching files found.
+            - 'sampled_files': list of per-file introspection dicts (may be empty).
+            - 'common_structure': dict of inferred common structure across samples, or None.
+            - 'error' (optional): error message when no files were found or another issue occurred.
+    """
     subdir = data_path / config['subdir']
     pattern = config['pattern']
     sample_count = config.get('sample_count', 2)
@@ -550,13 +671,16 @@ def process_file_type(data_path: Path, file_type: str, config: dict) -> dict:
 
 def identify_common_structure(introspections: list) -> dict:
     """
-    Identify HDU structure and keywords common across all sampled files.
+    Determine HDUs present in every introspected file and collect reference header keyword names from the first sample.
     
-    Uses the first introspected file as the reference for keyword enumeration.
-    This is intentional: we want a concrete example rather than intersection,
-    since keyword presence can vary (e.g., some calibration keywords only appear
-    after certain pipeline steps). The 'common_hdu_names' field does use
-    intersection to identify HDUs guaranteed present in all files.
+    Parameters:
+        introspections (list): Sequence of per-file introspection dictionaries produced by introspect_fits_file.
+    
+    Returns:
+        dict: {
+            "common_hdu_names": list of HDU names present in all provided introspections,
+            "reference_keywords": mapping from HDU name to a dict of header categories to lists of keyword names taken from the first introspection
+        }
     """
     if not introspections:
         return {}
@@ -593,7 +717,21 @@ def identify_common_structure(introspections: list) -> dict:
 
 
 def generate_markdown_summary(data_dict: dict, output_path: Path) -> None:
-    """Generate human-readable Markdown summary of the data dictionary."""
+    """
+    Create a human-readable Markdown report describing the FITS data dictionary and write it to disk.
+    
+    Generates a multi-section Markdown file that includes:
+    - document metadata (generation time and source path),
+    - a File Type Summary table with counts and example HDUs,
+    - per-file-type sections with HDU structure (index, name, type, shape/rows),
+    - wavelength coverage summary when available,
+    - prioritized header keywords by semantic category (target, observation, instrument, calibration, wcs_spatial, wcs_spectral),
+    - binary table column summaries with sample ranges.
+    
+    Parameters:
+        data_dict (dict): The data dictionary produced by the FITS introspection pipeline; expected keys include 'metadata' and 'file_types' with sampled file introspections.
+        output_path (Path): Filesystem path where the generated Markdown file will be written.
+    """
     lines = [
         "# RBH-1 FITS Data Dictionary",
         "",
@@ -740,6 +878,14 @@ def generate_markdown_summary(data_dict: dict, output_path: Path) -> None:
 
 
 def main() -> int:
+    """
+    Orchestrates command-line parsing and batch introspection of RBH-1 FITS files, producing a JSON data dictionary and a Markdown summary.
+    
+    Parses positional and optional CLI arguments, validates the provided data root (expects hst/ and jwst/ subdirectories), updates sampling configuration, runs per-file-type processing to collect introspection results, writes fits_data_dictionary.json to the output directory, and generates fits_data_dictionary.md.
+    
+    Returns:
+        exit_code (int): `0` on successful completion.
+    """
     parser = argparse.ArgumentParser(
         description="Deep introspection of RBH-1 FITS files for data dictionary generation",
         formatter_class=argparse.RawDescriptionHelpFormatter,

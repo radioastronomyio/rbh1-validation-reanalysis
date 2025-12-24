@@ -45,11 +45,18 @@ DEFAULT_DATABASE = "rbh1_validation"
 
 def load_env_file(env_path: Path) -> dict[str, str]:
     """
-    Parse environment file into dictionary.
+    Load KEY=VALUE pairs from a .env-style file into a dictionary.
     
-    Handles standard .env format: KEY=VALUE with optional single or double quotes.
-    Lines starting with # are treated as comments. Inline comments are NOT supported
-    (the # would be included in the value). This matches docker-compose behavior.
+    Parses lines of the form KEY=VALUE, strips surrounding whitespace, and removes surrounding single or double quotes from values. Blank lines and lines beginning with `#` are ignored; `#` characters appearing after a value are treated as part of the value (inline comments are not removed).
+    
+    Parameters:
+        env_path (Path): Path to the .env file to read.
+    
+    Returns:
+        dict[str, str]: Mapping of environment variable names to their values.
+    
+    Raises:
+        FileNotFoundError: If the specified env_path does not exist.
     """
     env_vars = {}
     
@@ -95,8 +102,15 @@ def get_connection_params(env: dict, database: Optional[str] = None) -> dict:
 
 def create_database_if_not_exists(conn_params: dict, database_name: str, dry_run: bool = False) -> bool:
     """
-    Create the target database if it doesn't exist.
-    Returns True if database was created, False if it already existed.
+    Create the target PostgreSQL database if it does not already exist.
+    
+    Parameters:
+        conn_params (dict): Connection parameters for PostgreSQL (e.g. host, port, user, password, database) used to connect to a maintenance database.
+        database_name (str): Name of the database to ensure exists.
+        dry_run (bool): If True, report actions without creating the database.
+    
+    Returns:
+        bool: `true` if the database was created, `false` if it already existed or if this was a dry run.
     """
     import psycopg2
     from psycopg2.extensions import ISOLATION_LEVEL_AUTOCOMMIT
@@ -137,7 +151,16 @@ def create_database_if_not_exists(conn_params: dict, database_name: str, dry_run
 
 def deploy_schema(conn_params: dict, ddl_path: Path, dry_run: bool = False) -> None:
     """
-    Execute the DDL script against the target database.
+    Deploys the SQL DDL file to the database specified by conn_params.
+    
+    Parameters:
+        conn_params (dict): PostgreSQL connection parameters (e.g., host, port, user, password, database).
+        ddl_path (Path): Filesystem path to the SQL DDL file to execute.
+        dry_run (bool): If True, the function reports actions without executing the DDL.
+    
+    Raises:
+        FileNotFoundError: If the DDL file at ddl_path does not exist.
+        RuntimeError: If executing the DDL or committing the transaction fails.
     """
     import psycopg2
     
@@ -172,8 +195,23 @@ def deploy_schema(conn_params: dict, ddl_path: Path, dry_run: bool = False) -> N
 
 def verify_schema(conn_params: dict) -> dict:
     """
-    Verify schema was created correctly.
-    Returns dict with table counts and verification status.
+    Collects names of tables, views, functions, and custom enum types in the 'rbh1' schema.
+    
+    Connects to the database using conn_params and queries information_schema/pg_catalog to gather:
+    - table names for BASE TABLEs in schema 'rbh1'
+    - view names in schema 'rbh1'
+    - routine (function) names in schema 'rbh1'
+    - custom enum type names in schema 'rbh1'
+    
+    Parameters:
+        conn_params (dict): Connection parameters for psycopg2 (expected keys include host, port, user, password, database).
+    
+    Returns:
+        results (dict): Mapping with keys:
+            - 'tables' (list[str]): Names of base tables in the 'rbh1' schema.
+            - 'views' (list[str]): Names of views in the 'rbh1' schema.
+            - 'functions' (list[str]): Names of routines in the 'rbh1' schema.
+            - 'types' (list[str]): Names of custom enum types in the 'rbh1' schema.
     """
     import psycopg2
     
@@ -235,8 +273,13 @@ def verify_schema(conn_params: dict) -> dict:
 
 def print_verification(results: dict) -> bool:
     """
-    Pretty-print verification results.
-    Returns True if verification passed, False otherwise.
+    Display a human-readable summary of schema verification results and evaluate whether counts meet expected thresholds.
+    
+    Parameters:
+        results (dict): Mapping with keys 'tables', 'views', 'functions', and 'types'; each value is a list of discovered object names.
+    
+    Returns:
+        bool: `True` if all counts meet or exceed the built-in expectations, `False` otherwise.
     """
     print("\n" + "=" * 60)
     print("SCHEMA VERIFICATION")
@@ -310,6 +353,11 @@ def print_verification(results: dict) -> bool:
 
 
 def main():
+    """
+    CLI entry point to deploy and verify the RBH-1 validation schema on pgsql01.
+    
+    Parses command-line options (--dry-run, --database, --verify-only, --env-file), ensures the psycopg2 driver is available, loads credentials from an environment file, optionally creates the target database, deploys the DDL to the target database, and verifies the deployed schema. The --dry-run flag prevents any changes from being made; --verify-only skips creation and deployment and only runs verification. Prints progress and errors to stdout/stderr and exits with status code 0 on successful verification or 1 on verification failure or other errors.
+    """
     parser = argparse.ArgumentParser(
         description="Deploy RBH-1 validation schema to pgsql01"
     )

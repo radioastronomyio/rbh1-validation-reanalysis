@@ -84,7 +84,19 @@ logger = logging.getLogger(__name__)
 # =============================================================================
 
 def load_credentials() -> dict:
-    """Load database credentials from environment file."""
+    """
+    Load PostgreSQL connection settings from the environment file and return them as a dictionary.
+    
+    Reads ENV_FILE with dotenv and returns a mapping containing connection parameters; unspecified environment variables fall back to sensible defaults.
+    
+    Returns:
+        dict: Connection settings with keys:
+            - host: hostname or IP address for the database server.
+            - port: TCP port number (integer).
+            - database: database name.
+            - user: username for authentication.
+            - password: password for authentication (empty string if not set).
+    """
     logger.info(f"Loading credentials from: {ENV_FILE}")
     load_dotenv(ENV_FILE)
     
@@ -98,7 +110,14 @@ def load_credentials() -> dict:
 
 
 def create_pipeline_run(conn, stage_name: str) -> uuid.UUID:
-    """Register this ETL run in pipeline_runs table."""
+    """
+    Create and record a new pipeline run entry for the given ETL stage.
+    
+    Inserts a row into rbh1.pipeline_runs with status "RUNNING" and a generated run name, then commits the transaction.
+    
+    Returns:
+        run_id (uuid.UUID): The generated UUID for the newly created pipeline run.
+    """
     run_id = uuid.uuid4()
     run_name = f"etl-wcs-{datetime.now(timezone.utc).strftime('%Y%m%d-%H%M%S')}"
     
@@ -121,7 +140,17 @@ def create_pipeline_run(conn, stage_name: str) -> uuid.UUID:
 
 
 def update_pipeline_run(conn, run_id: uuid.UUID, status: str, notes: str | None = None):
-    """Update pipeline run status on completion."""
+    """
+    Mark a pipeline run as completed and record its status and optional notes.
+    
+    This sets the pipeline run's `completed_at` timestamp to the current UTC time, updates `status`
+    and `notes` for the specified `run_id`, and commits the change to the database.
+    
+    Parameters:
+        run_id (uuid.UUID): Identifier of the pipeline run to update.
+        status (str): New status string to store for the pipeline run.
+        notes (str | None): Optional free-form notes to associate with the run.
+    """
     with conn.cursor() as cur:
         cur.execute("""
             UPDATE rbh1.pipeline_runs 
@@ -137,7 +166,17 @@ def update_pipeline_run(conn, run_id: uuid.UUID, status: str, notes: str | None 
 
 
 def get_observations_for_wcs(conn) -> list:
-    """Fetch observations with valid celestial WCS (excluding x1d and cal)."""
+    """
+    Retrieve observations that are eligible for celestial WCS extraction (file types: 'flc', 'drc', 's3d').
+    
+    Returns:
+        list: A list of dictionaries, each containing:
+            - obs_id (str): Observation UUID as a string.
+            - filename (str): Stored filename.
+            - file_path (str): Filesystem path relative to the data root.
+            - file_type (str): File type (one of 'flc', 'drc', 's3d').
+            - instrument (str): Instrument name.
+    """
     with conn.cursor() as cur:
         cur.execute("""
             SELECT obs_id, filename, file_path, file_type, instrument
@@ -167,11 +206,16 @@ def get_observations_for_wcs(conn) -> list:
 
 def find_sci_extension(hdul: fits.HDUList, file_type: str) -> Optional[int]:
     """
-    Find the primary SCI extension index for WCS extraction.
+    Locate the index of the SCI extension to use for WCS extraction.
     
-    HST FLC: Multiple SCI extensions (chips), use first one
-    HST DRC: Single SCI extension (drizzle-combined)
-    JWST s3d/cal: SCI extension
+    Searches the provided FITS HDUList for an HDU named "SCI" and returns its index. If no "SCI" extension is found, falls back to the primary HDU (index 0) if it contains data, then to extension 1 if it contains data. Returns None when no suitable data extension exists.
+    
+    Parameters:
+        hdul (fits.HDUList): Open FITS HDUList to search.
+        file_type (str): File type hint (present for caller context; not used to determine the index).
+    
+    Returns:
+        index (Optional[int]): Extension index to use for WCS extraction, or `None` if none found.
     """
     for i, hdu in enumerate(hdul):
         if hdu.name == 'SCI':
@@ -192,12 +236,37 @@ def find_sci_extension(hdul: fits.HDUList, file_type: str) -> Optional[int]:
 
 
 def get_all_sci_extensions(hdul: fits.HDUList) -> list:
-    """Get indices of all SCI extensions (for multi-chip HST)."""
+    """
+    Return the indices of all HDUList extensions named 'SCI'.
+    
+    Parameters:
+        hdul (astropy.io.fits.HDUList): Open FITS HDUList to search.
+    
+    Returns:
+        list[int]: Indices of extensions with EXTNAME equal to 'SCI'. Empty list if none are found.
+    """
     return [i for i, hdu in enumerate(hdul) if hdu.name == 'SCI']
 
 
 def extract_wcs_params(wcs: WCS) -> dict:
-    """Extract WCS parameters from astropy WCS object."""
+    """
+    Extracts the primary celestial WCS parameters needed to store or compare spatial solutions.
+    
+    If the provided WCS has three axes, the celestial (2D) sub-WCS is used.
+    
+    Returns:
+        dict: Mapping of WCS parameter names to values:
+            - crpix1 (float): reference pixel X (1-based FITS convention converted to float).
+            - crpix2 (float): reference pixel Y.
+            - crval1 (float): reference coordinate value for axis 1 (usually RA, degrees).
+            - crval2 (float): reference coordinate value for axis 2 (usually Dec, degrees).
+            - cd1_1 (float): CD matrix element (1,1).
+            - cd1_2 (float): CD matrix element (1,2).
+            - cd2_1 (float): CD matrix element (2,1).
+            - cd2_2 (float): CD matrix element (2,2).
+            - ctype1 (str): projection type string for axis 1 (e.g., "RA---TAN").
+            - ctype2 (str): projection type string for axis 2 (e.g., "DEC--TAN").
+    """
     # Get the 2D celestial WCS if this is a 3D cube
     if wcs.naxis == 3:
         celestial_wcs = wcs.celestial
@@ -239,10 +308,15 @@ def extract_wcs_params(wcs: WCS) -> dict:
 
 def compute_footprint_polygon(wcs: WCS, naxis1: int, naxis2: int) -> str:
     """
-    Compute WKT polygon string for image footprint.
+    Compute the image footprint as a closed WKT POLYGON in sky coordinates.
     
-    Transforms image corners to sky coordinates and creates a closed polygon.
-    Returns WKT format for PostGIS ST_GeomFromText().
+    Parameters:
+        wcs (WCS): A 2D celestial WCS or a 3D WCS (the celestial sub-WCS will be used).
+        naxis1 (int): Image width in pixels (number of columns).
+        naxis2 (int): Image height in pixels (number of rows).
+    
+    Returns:
+        wkt (str): WKT `POLYGON` string representing the four image corners in RA/DEC order (closed by repeating the first vertex).
     """
     # Get 2D celestial WCS
     if wcs.naxis == 3:
@@ -274,13 +348,16 @@ def compute_footprint_polygon(wcs: WCS, naxis1: int, naxis2: int) -> str:
 
 def compute_multichip_footprint(hdul: fits.HDUList, sci_indices: list) -> str:
     """
-    Compute convex hull envelope for multi-chip detectors (HST FLC).
+    Compute a convex-hull POLYGON WKT covering all SCI extension corners for multi-chip detectors.
     
-    HST WFC3/UVIS has two chips with a physical gap. Rather than storing
-    a MULTIPOLYGON (which complicates spatial queries and violates our
-    schema's NOT NULL POLYGON constraint), we compute the convex hull
-    of all chip corners. This slightly overestimates coverage but enables
-    simple ST_Intersects queries.
+    This produces a single POLYGON WKT that is the convex hull of all chip corner sky coordinates (RA, DEC). Using a convex hull avoids multipart geometries for detectors with separated chips.
+    
+    Parameters:
+        hdul (fits.HDUList): Open FITS HDUList containing the SCI extensions.
+        sci_indices (list): Sequence of integer indices identifying SCI extensions to include.
+    
+    Returns:
+        str: WKT `POLYGON` string (closed) representing the convex hull of all provided chip corners.
     """
     all_corners_ra = []
     all_corners_dec = []
@@ -324,9 +401,23 @@ def compute_multichip_footprint(hdul: fits.HDUList, sci_indices: list) -> str:
 
 def extract_wcs_from_fits(filepath: Path, file_type: str) -> Optional[dict]:
     """
-    Extract WCS solution from FITS file.
+    Extract a validated celestial WCS solution and footprint from a FITS file.
     
-    Returns dict with all fields needed for wcs_solutions table insert.
+    Parameters:
+        filepath (Path): Path to the FITS file to read.
+        file_type (str): File type hint used to choose WCS handling (typical values: 'flc', 'drc', 's3d').
+    
+    Returns:
+        dict | None: A dictionary containing WCS metadata and a footprint suitable for insertion into wcs_solutions, or `None` if extraction or validation failed. The dictionary contains:
+            - crpix1 (float), crpix2 (float)
+            - crval1 (float), crval2 (float)
+            - cd1_1 (float), cd1_2 (float), cd2_1 (float), cd2_2 (float)
+            - ctype1 (str), ctype2 (str)
+            - footprint_wkt (str): WKT POLYGON in longitude/latitude order (suitable for ST_GeomFromText with SRID 4326)
+            - has_spectral_axis (bool)
+            - wavelength_unit (str | None)
+            - naxis1 (int), naxis2 (int)
+            - naxis3 (int | None)
     """
     with fits.open(filepath) as hdul:
         # Find SCI extension(s)
@@ -466,11 +557,23 @@ def extract_wcs_from_fits(filepath: Path, file_type: str) -> Optional[dict]:
 
 def insert_wcs_solutions(conn, records: list) -> tuple[int, int, int]:
     """
-    Batch insert WCS solutions with UPSERT.
+    Insert or update multiple WCS solution records for observations in rbh1.wcs_solutions.
     
-    On conflict (obs_id exists): update WCS parameters.
+    Parameters:
+        records (list): List of dictionaries, each containing WCS data for a single observation.
+            Required keys: "obs_id", "crpix1", "crpix2", "crval1", "crval2",
+            "cd1_1", "cd1_2", "cd2_1", "cd2_2", "ctype1", "ctype2",
+            "footprint_wkt", "has_spectral_axis", "wavelength_unit",
+            "naxis1", "naxis2", "naxis3".
     
-    Returns (inserted_count, updated_count, error_count).
+    Returns:
+        tuple[int, int, int]: (inserted_count, updated_count, error_count)
+            inserted_count: number of records inserted,
+            updated_count: number of records that conflicted on obs_id and were updated,
+            error_count: number of records that failed (always 0 for current implementation).
+    
+    Notes:
+        Commits the transaction; on conflict by obs_id the existing row is updated with the new WCS parameters.
     """
     if not records:
         return 0, 0, 0
@@ -562,7 +665,15 @@ def insert_wcs_solutions(conn, records: list) -> tuple[int, int, int]:
 # =============================================================================
 
 def run_etl(dry_run: bool = False):
-    """Main ETL pipeline for WCS solutions."""
+    """
+    Run the ETL pipeline that extracts WCS parameters and footprints from observation FITS files and upserts them into the database.
+    
+    Parameters:
+        dry_run (bool): If True, perform a validation run without making any changes to the database.
+    
+    Returns:
+        bool: `True` if the ETL completed with no errors, `False` otherwise.
+    """
     
     logger.info("=" * 60)
     logger.info("RBH-1 WCS SOLUTIONS ETL")
@@ -665,6 +776,11 @@ def run_etl(dry_run: bool = False):
 
 
 def main():
+    """
+    Run the ETL pipeline for extracting WCS solutions from FITS files and exit with an appropriate status code.
+    
+    Parses the command-line option `--dry-run` to run the pipeline without writing to the database, invokes the ETL, and exits with status code 0 on success or 1 on failure.
+    """
     parser = argparse.ArgumentParser(description="ETL WCS solutions from FITS files")
     parser.add_argument("--dry-run", action="store_true",
                         help="Process files without database changes")
