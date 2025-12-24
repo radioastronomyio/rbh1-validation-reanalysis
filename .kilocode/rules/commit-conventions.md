@@ -28,6 +28,7 @@ We use a hybrid format combining visual Emoji-Log categories with machine-readab
 ```
 
 Why Hybrid?
+
 - Emoji → Visual scanning, emotional context, quick comprehension
 - Conventional Commits → Machine-readable, automated versioning/changelog, tooling compatibility
 - Best of both worlds → Human-friendly AND automation-friendly
@@ -35,11 +36,13 @@ Why Hybrid?
 ## Emoji Categories and Conventional Types
 
 ### 📦 NEW - New Features
+
 Conventional Type: `feat`  
 SemVer Impact: MINOR version bump  
 Use When: Adding entirely new functionality, features, capabilities
 
 Examples:
+
 ```
 📦 NEW feat(auth): Add JWT token validation
 📦 NEW feat(api): Add user profile endpoint
@@ -49,11 +52,13 @@ Examples:
 ---
 
 ### 👌 IMPROVE - Improvements and Refactoring
+
 Conventional Types: `refactor`, `perf`, `style`  
 SemVer Impact: PATCH version bump (or none if internal)  
 Use When: Enhancing existing code without changing external behavior
 
 Examples:
+
 ```
 👌 IMPROVE refactor(auth): Simplify token validation logic
 👌 IMPROVE perf(db): Optimize query performance with indexing
@@ -63,11 +68,13 @@ Examples:
 ---
 
 ### 🐛 FIX - Bug Fixes
+
 Conventional Type: `fix`  
 SemVer Impact: PATCH version bump  
 Use When: Correcting defects, errors, or unexpected behavior
 
 Examples:
+
 ```
 🐛 FIX fix(api): Correct null pointer in user lookup
 🐛 FIX fix(auth): Resolve race condition in token refresh
@@ -77,11 +84,13 @@ Examples:
 ---
 
 ### 📖 DOC - Documentation
+
 Conventional Type: `docs`  
 SemVer Impact: None (documentation only)  
 Use When: Adding or updating documentation, README files, comments
 
 Examples:
+
 ```
 📖 DOC docs(readme): Update installation instructions
 📖 DOC docs(api): Add endpoint documentation
@@ -91,11 +100,13 @@ Examples:
 ---
 
 ### 🚀 RELEASE - Version Releases
+
 Conventional Type: `chore` (with version tag)  
 SemVer Impact: Explicit version declaration  
 Use When: Tagging version releases, publishing packages
 
 Examples:
+
 ```
 🚀 RELEASE chore: Version 2.0.0
 🚀 RELEASE chore(npm): Publish version 1.5.3
@@ -104,11 +115,13 @@ Examples:
 ---
 
 ### 🤖 TEST - Testing
+
 Conventional Type: `test`  
 SemVer Impact: None (testing infrastructure)  
 Use When: Adding or modifying tests, test infrastructure, mocks
 
 Examples:
+
 ```
 🤖 TEST test(auth): Add unit tests for token validation
 🤖 TEST test(api): Mock external service responses
@@ -118,11 +131,13 @@ Examples:
 ---
 
 ### ‼️ BREAKING - Breaking Changes
+
 Conventional Type: ANY type with `BREAKING CHANGE:` footer  
 SemVer Impact: MAJOR version bump  
 Use When: Changes that break backward compatibility
 
 Examples:
+
 ```
 ‼️ BREAKING feat(api): Change authentication protocol
 
@@ -133,6 +148,7 @@ BREAKING CHANGE: API key authentication no longer supported
 ```
 
 Alternative Format (append `!` after type/scope):
+
 ```
 ‼️ BREAKING feat(api)!: Change authentication protocol
 ```
@@ -144,24 +160,28 @@ Alternative Format (append `!` after type/scope):
 For commits that don't fit emoji categories, use conventional types without emoji:
 
 build - Build system, dependencies, tooling
+
 ```
 build(deps): Upgrade React to version 18
 build(docker): Update base image to Node 20
 ```
 
 ci - Continuous integration, pipelines, automation
+
 ```
 ci(github): Add automated security scanning
 ci(deploy): Configure production deployment workflow
 ```
 
 chore - Maintenance tasks, repository housekeeping
+
 ```
 chore(git): Update .gitignore patterns
 chore: Remove deprecated configuration files
 ```
 
 ops - Operational changes (infrastructure, deployment, monitoring)
+
 ```
 ops(k8s): Scale production deployment to 5 replicas
 ops(monitoring): Add alerting for API latency
@@ -176,6 +196,7 @@ Scope provides additional context about what part of the codebase is affected.
 ### When to Use Scope
 
 Multi-component projects - RECOMMENDED
+
 ```
 feat(api): Add health check endpoint
 fix(ui): Correct button alignment
@@ -183,12 +204,14 @@ docs(sdk): Update integration examples
 ```
 
 Monorepos - REQUIRED
+
 ```
 feat(auth-service): Add OAuth provider
 fix(payment-service): Handle timeout errors
 ```
 
 Single-component projects - OPTIONAL
+
 ```
 feat: Add user preferences
 fix: Resolve memory leak
@@ -204,15 +227,19 @@ fix: Resolve memory leak
 ### Common Scopes by Project Type
 
 Web Application:
+
 - `(ui)`, `(api)`, `(auth)`, `(db)`, `(config)`
 
 Library/SDK:
+
 - `(core)`, `(utils)`, `(types)`, `(examples)`
 
 Infrastructure/DevOps:
+
 - `(k8s)`, `(terraform)`, `(ansible)`, `(docker)`
 
 Documentation Projects:
+
 - `(readme)`, `(api-docs)`, `(guides)`, `(examples)`
 
 ---
@@ -232,6 +259,7 @@ The description is the single most important part of the commit message.
 ### Good vs Bad Examples
 
 ❌ BAD:
+
 ```
 📦 NEW feat: Updates
 🐛 FIX fix: Fixed bug
@@ -239,6 +267,7 @@ The description is the single most important part of the commit message.
 ```
 
 ✅ GOOD:
+
 ```
 📦 NEW feat(auth): Add session timeout configuration
 🐛 FIX fix(api): Resolve race condition in concurrent requests
@@ -291,11 +320,13 @@ Footers provide metadata and references.
 ### Common Footer Types
 
 Breaking Changes:
+
 ```
 BREAKING CHANGE: API v1 endpoints removed, use v2
 ```
 
 Issue References (GitHub/GitLab):
+
 ```
 Fixes #123
 Closes #456
@@ -303,21 +334,25 @@ Refs #789
 ```
 
 Multiple Issues:
+
 ```
 Fixes #123, #456, #789
 ```
 
 Pull Request Links:
+
 ```
 Refs PR-42
 ```
 
 Co-authors:
+
 ```
 Co-authored-by: Name <email@example.com>
 ```
 
 Other Metadata:
+
 ```
 Reviewed-by: Jane Doe <jane@example.com>
 Signed-off-by: John Smith <john@example.com>
@@ -357,6 +392,7 @@ Co-authored-by: Jane Developer <jane@example.com>
 ### What Kilo Code Should Consider
 
 When Analyzing Changes:
+
 - Type of change - Is this feat, fix, refactor, docs, etc.?
 - Affected scope - Which component/module changed?
 - Significance - Is this breaking? Does it need body explanation?
@@ -364,6 +400,7 @@ When Analyzing Changes:
 - Multiple concerns - Should this be split into multiple commits?
 
 Commit Message Generation:
+
 - Select appropriate emoji based on change type
 - Choose conventional type matching the change
 - Identify scope from file paths and module structure
@@ -374,6 +411,7 @@ Commit Message Generation:
 ### Example: Kilo Code Analysis
 
 Staged Changes:
+
 ```diff
 + src/auth/token-validator.js    (new file)
 + src/auth/index.js               (import added)
@@ -382,6 +420,7 @@ M tests/auth/token.test.js        (new test cases)
 ```
 
 Kilo Code Generates:
+
 ```
 📦 NEW feat(auth): Add JWT token validation middleware
 
@@ -402,6 +441,7 @@ Closes #145
 ### Multiple Files, Single Concern
 
 Good - One commit for related changes:
+
 ```
 📦 NEW feat(auth): Add password reset flow
 
@@ -414,11 +454,13 @@ Good - One commit for related changes:
 ### Multiple Concerns in Staged Changes
 
 Bad - Don't commit unrelated changes together:
+
 ```
 ❌ 📦 NEW feat: Add login and fix typos and update readme
 ```
 
 Good - Split into separate commits:
+
 ```
 ✅ 📦 NEW feat(auth): Add login endpoint
 ✅ 📖 DOC docs(readme): Fix typos in installation section
@@ -427,6 +469,7 @@ Good - Split into separate commits:
 ### Merge Commits
 
 Use default merge message or:
+
 ```
 chore(merge): Merge branch 'feature/user-auth' into main
 ```
@@ -443,6 +486,7 @@ Reason: Causes performance degradation in production.
 ### Work in Progress (WIP)
 
 For feature branches only, not main:
+
 ```
 wip: Implement user authentication (incomplete)
 ```
@@ -473,6 +517,7 @@ Before committing, verify:
 ### For astronomy-cluster Projects
 
 Preferred scopes:
+
 - `(vault)` - Obsidian vault structure/content
 - `(docs)` - Documentation
 - `(infra)` - Infrastructure code
@@ -481,6 +526,7 @@ Preferred scopes:
 - `(memory-bank)` - Memory bank files
 
 Example commits:
+
 ```
 📦 NEW feat(templates): Add memory bank template structure
 📖 DOC docs(vault): Update agent coordination protocols
@@ -490,6 +536,7 @@ Example commits:
 ### For NIST AI RMF Cookbook
 
 Preferred scopes:
+
 - `(govern)` - GOVERN function mappings
 - `(map)` - MAP function mappings
 - `(measure)` - MEASURE function mappings
@@ -498,6 +545,7 @@ Preferred scopes:
 - `(docs)` - Documentation
 
 Example commits:
+
 ```
 📦 NEW feat(govern): Add GV-1.1 control implementation
 📖 DOC docs(readme): Update compliance matrix
@@ -529,11 +577,13 @@ Example commits:
 ### "Should I split this commit?"
 
 Yes, if:
+
 - Changes address multiple unrelated concerns
 - Mix of feat, fix, docs, etc. in one commit
 - Part of changes are experimental/WIP
 
 No, if:
+
 - All changes support single feature/fix
 - Changes are dependent on each other
 - Split would break atomic commit principle
@@ -542,10 +592,10 @@ No, if:
 
 ## Resources
 
-- Emoji-Log Specification: https://github.com/ahmadawais/Emoji-Log
-- Conventional Commits: https://www.conventionalcommits.org/
-- Semantic Versioning: https://semver.org/
-- VSCode Emoji-Log Extension: https://marketplace.visualstudio.com/items?itemName=ahmadawais.emoji-log-vscode
+- Emoji-Log Specification: <https://github.com/ahmadawais/Emoji-Log>
+- Conventional Commits: <https://www.conventionalcommits.org/>
+- Semantic Versioning: <https://semver.org/>
+- VSCode Emoji-Log Extension: <https://marketplace.visualstudio.com/items?itemName=ahmadawais.emoji-log-vscode>
 
 ---
 

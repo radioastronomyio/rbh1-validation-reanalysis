@@ -14,6 +14,7 @@ This directory contains universal templates for the `.kilocode/rules/memory-bank
 ## Usage
 
 1. Copy entire directory to your project/area scope:
+
    ```bash
    cp -r memory-bank-templates/ {your-project}/.kilocode/rules/memory-bank/
    ```
@@ -35,6 +36,7 @@ This directory contains universal templates for the `.kilocode/rules/memory-bank
 ## Template Adaptability
 
 These templates work for:
+
 - Project scopes (technical projects, coding repos)
 - Life area scopes (career, personal development, organization)
 - Repository scopes (code projects, libraries, frameworks)
@@ -45,6 +47,7 @@ HTML comments in each template show how to adapt language and focus for differen
 ## Integration with AI Agents
 
 Session startup pattern:
+
 1. Agent loads custom instructions (role definition)
 2. Agent loads AI Employee Handbook (operational procedures)
 3. Agent loads memory bank files (scope-specific context)
@@ -52,6 +55,7 @@ Session startup pattern:
 5. Agent is ready with full context
 
 Session end pattern:
+
 1. Update context.md with session outcomes
 2. Update other memory bank files if needed
 3. Write work session summary (if using staging)
@@ -60,6 +64,7 @@ Session end pattern:
 ## Philosophy
 
 Memory banks are infrastructure for persistent AI context. They enable:
+
 - Single-operator management of complex multi-project systems
 - AI agents that maintain understanding across sessions
 - Coordination between multiple specialized agents
@@ -70,13 +75,14 @@ The investment in creating and maintaining memory banks pays exponential dividen
 
 ## Resources
 
-- Original Methodology: https://kilocode.ai/docs/advanced-usage/memory-bank
+- Original Methodology: <https://kilocode.ai/docs/advanced-usage/memory-bank>
 - Memory Bank System Explainer: See project documentation
 - AI Employee Handbook: `astronomy-cluster/00-meta/claude-docs/ai-employee-handbook.md`
 
 ---
 
 Critical Success Factors:
+
 1. Consistency - Use same structure everywhere
 2. Brevity - Concise, scannable, focused
 3. Currency - Keep context.md current (stale = worse than nothing)

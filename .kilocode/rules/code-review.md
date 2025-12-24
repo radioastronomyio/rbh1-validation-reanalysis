@@ -28,6 +28,7 @@ We use VSCode Todo Tree Enhanced as our code review infrastructure:
 - Configurable tags for different review categories
 
 Why Todo Tree?
+
 - Persistent - Review items survive sessions, aren't lost in chat
 - Trackable - See all review items across entire codebase
 - Prioritizable - @number sorting for importance
@@ -41,36 +42,42 @@ All review tags follow the pattern: `// TAG: Description @priority`
 ### Core Review Tags
 
 REVIEW: General review items requiring attention
+
 ```javascript
 // REVIEW: Verify error handling covers all edge cases @1
 // REVIEW: Consider extracting this logic to separate function @3
 ```
 
 QUESTION: Clarification needed before proceeding
+
 ```python
 # QUESTION: Should this be async or is sync acceptable here? @2
 # QUESTION: What's the expected behavior for null input? @1
 ```
 
 SECURITY: Security concerns or vulnerabilities
+
 ```javascript
 // SECURITY: Input validation needed before database query @1
 // SECURITY: Consider rate limiting for this endpoint @2
 ```
 
 PERFORMANCE: Optimization opportunities
+
 ```python
 # PERFORMANCE: This loop could be vectorized for large datasets @2
 # PERFORMANCE: Consider caching this frequently-accessed data @3
 ```
 
 TECHNICAL-DEBT: Known issues to address later
+
 ```javascript
 // TECHNICAL-DEBT: Replace deprecated API call in v3.0 @4
 // TECHNICAL-DEBT: Refactor to use new authentication pattern @5
 ```
 
 COORDINATION: Cross-agent or cross-team coordination needed
+
 ```python
 # COORDINATION: Needs vault update before merging @1
 # COORDINATION: Requires API contract discussion with backend team @2
@@ -79,18 +86,21 @@ COORDINATION: Cross-agent or cross-team coordination needed
 ### Standard Development Tags (Keep Existing)
 
 TODO: Standard development todos
+
 ```javascript
 // TODO: Implement pagination for large result sets
 // TODO: Add unit tests for error cases
 ```
 
 FIXME: Known bugs or issues to fix
+
 ```python
 # FIXME: Race condition in concurrent access
 # FIXME: Memory leak in long-running processes
 ```
 
 BUG: Identified bugs requiring immediate attention
+
 ```javascript
 // BUG: Returns incorrect value for negative numbers
 // BUG: Crashes on empty input
@@ -99,17 +109,20 @@ BUG: Identified bugs requiring immediate attention
 ### Special Review Tags
 
 BREAKING: Breaking changes requiring documentation
+
 ```javascript
 // BREAKING: API signature changed, update all callers @1
 ```
 
 DOCS: Documentation needed or missing
+
 ```python
 # DOCS: Add docstring explaining algorithm complexity @3
 # DOCS: Update README with new configuration options @2
 ```
 
 TEST: Testing needs
+
 ```javascript
 // TEST: Add integration test for payment flow @2
 // TEST: Mock external API for unit tests @3
@@ -120,36 +133,42 @@ TEST: Testing needs
 ## Priority System with @number
 
 @1 - Critical - Must address before merge
+
 ```javascript
 // SECURITY: SQL injection vulnerability @1
 // BUG: Data corruption in edge case @1
 ```
 
 @2 - High - Should address soon, preferably before merge
+
 ```python
 # REVIEW: Logic error in calculation @2
 # PERFORMANCE: O(n²) algorithm, optimize to O(n log n) @2
 ```
 
 @3 - Medium - Address in near term, can merge if necessary
+
 ```javascript
 // QUESTION: Clarify expected behavior for edge case @3
 // TECHNICAL-DEBT: Simplify this nested logic @3
 ```
 
 @4 - Low - Nice to have, can defer
+
 ```python
 # DOCS: Add usage examples to docstring @4
 # PERFORMANCE: Minor optimization possible @4
 ```
 
 @5 - Backlog - Track but not immediate priority
+
 ```javascript
 // TECHNICAL-DEBT: Consider extracting to library @5
 // REVIEW: Evaluate alternative approach @5
 ```
 
 No priority - Informational, no action required
+
 ```python
 # NOTE: This algorithm based on Smith et al. 2023 paper
 ```
@@ -172,13 +191,15 @@ When Kilo Code is in Debug mode, it should:
 ### Debug Mode Review Workflow
 
 Step 1: Scope Definition
-```
+
+```markdown
 User: "Review the authentication module for security issues"
 Kilo Code: [Switches to Debug mode, loads code-review.md rule]
 ```
 
 Step 2: Systematic Analysis
 Kilo Code reviews each file/function:
+
 - Input validation
 - Error handling
 - Security patterns
@@ -187,6 +208,7 @@ Kilo Code reviews each file/function:
 - Test coverage
 
 Step 3: Insert Review Tags
+
 ```javascript
 // SECURITY: Validate JWT signature before trusting claims @1
 // SECURITY: Add rate limiting to prevent brute force @2
@@ -197,6 +219,7 @@ Step 3: Insert Review Tags
 
 Step 4: Todo Tree Aggregation
 Todo Tree automatically:
+
 - Scans for all tagged comments
 - Groups by tag type
 - Sorts by priority (@1 first)
@@ -204,6 +227,7 @@ Todo Tree automatically:
 - Highlights in editor
 
 Step 5: Generate Summary
+
 ```markdown
 # Code Review Summary - Authentication Module
 
@@ -230,6 +254,7 @@ Total Items: 5 (1 critical, 2 high, 2 medium)
 When reviewing for security:
 
 Input Validation
+
 - [ ] All user inputs sanitized
 - [ ] SQL injection prevention (parameterized queries)
 - [ ] XSS prevention (output encoding)
@@ -237,6 +262,7 @@ Input Validation
 - [ ] Command injection prevention
 
 Authentication & Authorization
+
 - [ ] Authentication required for protected endpoints
 - [ ] Authorization checks for resource access
 - [ ] Token validation (signature, expiration, claims)
@@ -244,6 +270,7 @@ Authentication & Authorization
 - [ ] Password handling follows best practices
 
 Data Protection
+
 - [ ] Sensitive data encrypted at rest
 - [ ] Secure communication (HTTPS/TLS)
 - [ ] Secrets not hardcoded
@@ -251,12 +278,14 @@ Data Protection
 - [ ] Audit logging for sensitive operations
 
 Rate Limiting & DoS
+
 - [ ] Rate limiting on API endpoints
 - [ ] Resource exhaustion prevention
 - [ ] Timeout configurations
 - [ ] Large payload handling
 
 Tag Pattern:
+
 ```javascript
 // SECURITY: [specific issue] @[priority]
 ```
@@ -268,29 +297,34 @@ Tag Pattern:
 When reviewing for performance:
 
 Algorithm Complexity
+
 - [ ] Time complexity acceptable for expected data size
 - [ ] Space complexity reasonable
 - [ ] No unnecessary nested loops
 - [ ] Efficient data structures used
 
 Database Operations
+
 - [ ] Queries optimized (indexes, joins)
 - [ ] N+1 query problems avoided
 - [ ] Batch operations used where appropriate
 - [ ] Connection pooling configured
 
 Caching
+
 - [ ] Frequently-accessed data cached
 - [ ] Cache invalidation strategy clear
 - [ ] Cache hit rate monitored
 
 Resource Management
+
 - [ ] File handles closed properly
 - [ ] Network connections released
 - [ ] Memory allocations reasonable
 - [ ] No obvious memory leaks
 
 Tag Pattern:
+
 ```python
 # PERFORMANCE: [optimization opportunity] @[priority]
 ```
@@ -302,6 +336,7 @@ Tag Pattern:
 When reviewing for code quality:
 
 Readability
+
 - [ ] Variable/function names descriptive
 - [ ] Code structure clear and logical
 - [ ] Magic numbers replaced with constants
@@ -309,6 +344,7 @@ Readability
 - [ ] Consistent formatting
 
 Maintainability
+
 - [ ] Functions focused on single responsibility
 - [ ] Duplication eliminated (DRY principle)
 - [ ] Dependencies minimized
@@ -316,6 +352,7 @@ Maintainability
 - [ ] Configuration externalized
 
 Error Handling
+
 - [ ] All error cases handled
 - [ ] Errors logged appropriately
 - [ ] User-facing errors informative
@@ -323,6 +360,7 @@ Error Handling
 - [ ] Graceful degradation
 
 Testing
+
 - [ ] Unit tests for new code
 - [ ] Edge cases covered
 - [ ] Integration tests for workflows
@@ -330,6 +368,7 @@ Testing
 - [ ] Mocks appropriate
 
 Tag Pattern:
+
 ```javascript
 // REVIEW: [quality concern] @[priority]
 // QUESTION: [clarification needed] @[priority]
@@ -342,6 +381,7 @@ Tag Pattern:
 When reviewing for technical debt:
 
 Identification
+
 - [ ] Deprecated APIs used
 - [ ] Outdated dependencies
 - [ ] Workarounds/hacks present
@@ -349,6 +389,7 @@ Identification
 - [ ] Commented-out code
 
 Documentation
+
 - [ ] Reason for debt documented
 - [ ] Ideal solution described
 - [ ] Migration path outlined
@@ -356,11 +397,13 @@ Documentation
 - [ ] Impact assessed
 
 Tag Pattern:
+
 ```python
 # TECHNICAL-DEBT: [issue] - [ideal solution] @[priority]
 ```
 
 Example:
+
 ```python
 # TECHNICAL-DEBT: Using deprecated auth library - migrate to OAuth2 @3
 # Migration plan in docs/oauth-migration.md, target Q2 2025
@@ -375,6 +418,7 @@ Example:
 Trigger: Feature branch ready for merge
 
 Process:
+
 1. Checkout feature branch
 2. Switch Kilo Code to Debug mode
 3. Run review: "Review all changed files"
@@ -386,6 +430,7 @@ Process:
 9. Merge when critical items resolved
 
 Todo Tree Export:
+
 ```markdown
 # Pre-Merge Review - Feature/User-Auth
 
@@ -418,6 +463,7 @@ Created issues #456, #457 for @3 items to track post-merge
 Trigger: Scheduled security review or security incident
 
 Process:
+
 1. Define audit scope (component, time period, or full codebase)
 2. Switch Kilo Code to Debug mode
 3. Systematic review using security checklist
@@ -432,6 +478,7 @@ Process:
 8. Address by priority
 
 Export Template:
+
 ```markdown
 # Security Audit Report - [Component/Date]
 
@@ -461,6 +508,7 @@ Export Template:
 Trigger: Performance issues identified, optimization needed
 
 Process:
+
 1. Identify performance problem (slow endpoint, high memory, etc.)
 2. Switch Kilo Code to Debug mode
 3. Review target code using performance checklist
@@ -471,6 +519,7 @@ Process:
 8. Measure improvement after each optimization
 
 Tag Example:
+
 ```python
 # PERFORMANCE: O(n²) nested loop, optimize to O(n log n) @2
 # Current: ~2500ms for 1000 items
@@ -485,6 +534,7 @@ Tag Example:
 Trigger: Changes affecting multiple agents/projects
 
 Process:
+
 1. Identify coordination needs during code review
 2. Insert COORDINATION tags with context
 3. Export coordination summary
@@ -493,12 +543,14 @@ Process:
 6. Update based on feedback
 
 Tag Example:
+
 ```javascript
 // COORDINATION: API contract change, needs backend team review @1
 // COORDINATION: Vault memory bank needs update before merge @2
 ```
 
 Export to Staging:
+
 ```markdown
 # Coordination Needed - Feature/Multi-Agent-Auth
 
@@ -602,18 +654,21 @@ Add to `.vscode/settings.json` in project root:
 ### Exporting Review Summary
 
 From Todo Tree:
+
 1. Right-click tree root
 2. Select "Export Tree"
 3. Choose export format (text or JSON)
 4. Save to appropriate location
 
 For Staging Handoff:
+
 ```bash
 # Export to staging for Vault Orchestrator
 todo-tree export > /path/to/vault/staging/code-review-YYYY-MM-DD.md
 ```
 
 For PR Description:
+
 ```bash
 # Export and copy to clipboard
 todo-tree export | pbcopy  # macOS
@@ -671,6 +726,7 @@ Scope: [Files/components reviewed]
 ### Creating Review Items
 
 During Review:
+
 ```javascript
 // SECURITY: Validate user input before database query @1
 ```
@@ -678,12 +734,14 @@ During Review:
 ### Addressing Review Items
 
 When Resolved:
+
 ```javascript
 // SECURITY: Validate user input before database query @1
 // RESOLVED: Added parameterized query and input sanitization
 ```
 
 Or Simply Remove:
+
 ```javascript
 // Remove the tag entirely when issue is fixed
 ```
@@ -691,6 +749,7 @@ Or Simply Remove:
 ### Deferring Review Items
 
 Create Issue, Update Tag:
+
 ```javascript
 // SECURITY: Add rate limiting to API endpoints @2
 // DEFERRED: Created issue #456, scheduled for Sprint 23
@@ -699,6 +758,7 @@ Create Issue, Update Tag:
 ### False Positives
 
 Mark as Not Applicable:
+
 ```javascript
 // REVIEW: Extract this logic to separate function @3
 // N/A: Logic is coupled by design, extraction would increase complexity
@@ -847,36 +907,43 @@ done
 ## Best Practices
 
 1. Review in Debug Mode
+
 - Always switch to Debug mode for systematic reviews
 - Load this rule before starting review
 - Follow checklists appropriate to review type
 
-2. Prioritize Ruthlessly
+1. Prioritize Ruthlessly
+
 - @1 = blocking issues, must fix before merge
 - @2 = important, should fix soon
 - @3+ = track but can defer
 
-3. Be Specific
+1. Be Specific
+
 - Don't just say "fix this" - explain WHAT and WHY
 - Include context for future reviewers
 - Reference documentation when helpful
 
-4. Track Resolution
+1. Track Resolution
+
 - Mark tags as RESOLVED when fixed
 - Remove tags that are no longer relevant
 - Create issues for deferred items
 
-5. Export Regularly
+1. Export Regularly
+
 - Export before merging
 - Export for handoff between agents
 - Export for documentation
 
-6. Use Consistently
+1. Use Consistently
+
 - Same tags across all projects
 - Same priority scale
 - Same review checklists
 
-7. Clean Up
+1. Clean Up
+
 - Remove resolved tags
 - Archive completed reviews
 - Don't let tags accumulate
@@ -885,8 +952,8 @@ done
 
 ## Resources
 
-- Todo Tree Enhanced: https://marketplace.visualstudio.com/items?itemName=CJL.todo-tree-enhanced
-- Kilo Code Documentation: https://kilocode.ai/docs
+- Todo Tree Enhanced: <https://marketplace.visualstudio.com/items?itemName=CJL.todo-tree-enhanced>
+- Kilo Code Documentation: <https://kilocode.ai/docs>
 - Code Review Best Practices: Internal documentation
 
 ---

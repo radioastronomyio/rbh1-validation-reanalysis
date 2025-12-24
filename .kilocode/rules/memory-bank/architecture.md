@@ -9,33 +9,38 @@ The pipeline follows a Producer-Consumer pattern where CPU-intensive galactic dy
 ## Core Components
 
 ### Data Layer
+
 Purpose: Raw and processed observational data  
 Location: `/mnt/ai-ml/data/` on cluster storage  
 Key Characteristics: HST WFC3/UVIS imaging (GO-17301), JWST NIRSpec IFU spectroscopy (GO-3149), MAPPINGS V shock model grids
 
 ### Pipeline Phases
+
 Purpose: Sequential processing stages with clear handoffs  
 Location: `scripts/00-*` through `scripts/09-*`  
 Key Characteristics: Each phase produces artifacts consumed by subsequent phases, enabling modular development and clear provenance
 
 ### Inference Engine
+
 Purpose: Bayesian parameter estimation  
 Location: `src/inference/`  
 Key Characteristics: MCMC sampling with JAX acceleration, cube-native likelihood, full marginalization over nuisance parameters
 
 ### Falsification Module
+
 Purpose: Edge-on galaxy hypothesis testing  
 Location: `src/falsification/`  
 Key Characteristics: galpy dynamics, Toomre Q stability filtering, forward modeling to IFU space
 
 ### ARD Package
+
 Purpose: Preserved computational artifacts  
 Location: `rbh1-ard-v1/`  
 Key Characteristics: Four layers (likelihood interface, inference, representative sample, validation), Zenodo-ready structure
 
 ## Structure
 
-```
+```markdown
 rbh1-validation-reanalysis/
 ├── .kilocode/rules/memory-bank/  # AI agent context persistence
 ├── data/                          # Data manifest (actual data on cluster)
@@ -94,7 +99,7 @@ rbh1-validation-reanalysis/
 
 ## Data Flow
 
-```
+```markdown
 MAST (HST/JWST) → Acquisition → Validation → Extraction → Cube Differencing
                                                               ↓
 Falsification ← Robustness ← MAPPINGS Inference ← Kinematic Fitting ← Noise Model
@@ -105,18 +110,21 @@ ARD Materialization → Zenodo
 ## Architectural Decisions
 
 ### Decision: Cube-Native Likelihood
+
 Date: 2024-12  
 Decision: Compare models to data in IFU cube space, not reduced 1D spectra  
 Rationale: Preserves spatial-spectral covariance, enables proper nuisance marginalization  
 Implications: Requires GPU acceleration for tractable computation
 
 ### Decision: Producer-Consumer Task Distribution
+
 Date: 2024-12  
 Decision: Separate dynamics (CPU) from likelihood (GPU) via message broker  
 Rationale: Heterogeneous cluster with 3 CPU nodes, 1 GPU node. Neither should idle.  
 Implications: DragonFlyDB for ephemeral task queue, PostgreSQL for durable chain storage
 
 ### Decision: ARD as Co-Equal Deliverable
+
 Date: 2024-12  
 Decision: Design ARD upfront, not retrofit after analysis  
 Rationale: Packaging cost trivial vs regeneration cost. Enables community reanalysis.  

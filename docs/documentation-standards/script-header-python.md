@@ -99,6 +99,7 @@ Use banner comments to separate logical sections:
 ```
 
 Standard sections (in order):
+
 1. **Imports** — Standard library, third-party, local imports (in that order)
 2. **Configuration** — Constants, paths, settings
 3. **Functions** — Function and class definitions

@@ -1,0 +1,91 @@
+crainbramp@proj-gpu01:/mnt/ai-ml/rbh1/phase02$ python 06-etl_spectral_grids.py
+2025-12-24 12:58:53 [INFO] ============================================================
+2025-12-24 12:58:53 [INFO] RBH-1 SPECTRAL GRIDS ETL
+2025-12-24 12:58:53 [INFO] ============================================================
+2025-12-24 12:58:53 [INFO] Loading credentials from: /opt/global-env/research.env
+2025-12-24 12:58:53 [INFO] Connecting to: 10.25.20.8:5432/rbh1_validation
+2025-12-24 12:58:53 [INFO] Pipeline run ID: ca8fb706-46dc-4b38-91cd-84a966050cbe
+2025-12-24 12:58:53 [INFO] Found 18 s3d cubes with WCS solutions
+2025-12-24 12:58:53 [INFO] [1/18] Processing: jw03149001001_02101_00001_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Canonical grid set from jw03149001001_02101_00001_nrs1_s3d.fits | hash=0839c17f2d67956c.. | dl_med=6.360e-04 µm | mode=spectral_subwcs
+2025-12-24 12:58:53 [INFO] [2/18] Processing: jw03149001001_02101_00002_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [3/18] Processing: jw03149001001_02101_00003_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [4/18] Processing: jw03149001001_02101_00004_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [5/18] Processing: jw03149001001_04101_00001_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [6/18] Processing: jw03149001001_04101_00002_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [7/18] Processing: jw03149001001_04101_00003_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [8/18] Processing: jw03149001001_04101_00004_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [9/18] Processing: jw03149001001_06101_00001_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [10/18] Processing: jw03149001001_06101_00002_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [11/18] Processing: jw03149001001_06101_00003_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [12/18] Processing: jw03149001001_06101_00004_nrs1_s3d.fits
+2025-12-24 12:58:53 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:53 [INFO] [13/18] Processing: jw03149001001_08101_00001_nrs1_s3d.fits
+2025-12-24 12:58:54 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:54 [INFO] [14/18] Processing: jw03149001001_08101_00002_nrs1_s3d.fits
+2025-12-24 12:58:54 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:54 [INFO] [15/18] Processing: jw03149001001_08101_00003_nrs1_s3d.fits
+2025-12-24 12:58:54 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:54 [INFO] [16/18] Processing: jw03149001001_08101_00004_nrs1_s3d.fits
+2025-12-24 12:58:54 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:54 [INFO] [17/18] Processing: jw03149-o001_t001_nirspec_g140m-f100lp_s3d.fits
+2025-12-24 12:58:54 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:54 [INFO] [18/18] Processing: jw03149-o001_t002_nirspec_g140m-f100lp_s3d.fits
+2025-12-24 12:58:54 [INFO]   Grid compare | max_abs=0.000e+00 µm | tol=6.361e-07 µm | max_rel=0.000e+00 | hash=0839c17f2d67956c.. | match=True
+2025-12-24 12:58:54 [INFO] Upserting 18 spectral grids...
+2025-12-24 12:58:54 [INFO] ============================================================
+2025-12-24 12:58:54 [INFO] ETL SUMMARY
+2025-12-24 12:58:54 [INFO] ============================================================
+2025-12-24 12:58:54 [INFO] Total s3d targets:          18
+2025-12-24 12:58:54 [INFO] Successfully processed:     18
+2025-12-24 12:58:54 [INFO] New grids inserted:         18
+2025-12-24 12:58:54 [INFO] Existing grids updated:     0
+2025-12-24 12:58:54 [INFO] Skipped (invalid grids):    0
+2025-12-24 12:58:54 [INFO] Errors:                     0
+2025-12-24 12:58:54 [INFO] Canonical grid hash:        0839c17f2d67956cedd5b4770dda820190bae60ab60712c72a29d47c3774e54b
+2025-12-24 12:58:54 [INFO] ============================================================
+
+VERIFICATION QUERIES:
+=====================
+
+rbh1_validation=# SELECT COUNT(*) AS grids, COUNT(DISTINCT wcs_id) AS uniq_wcs
+FROM rbh1.spectral_grids;
+ grids | uniq_wcs
+-------+----------
+    18 |       18
+(1 row)
+
+rbh1_validation=# SELECT MIN(n_channels), MAX(n_channels),
+       MIN(min_wavelength), MAX(max_wavelength),
+       MIN(mean_resolution), MAX(mean_resolution)
+FROM rbh1.spectral_grids;
+ min  | max  |        min         |        max         |        min         |        max
+------+------+--------------------+--------------------+--------------------+--------------------
+ 1447 | 1447 | 0.9703180286160203 | 1.8899740453634868 | 2249.1572499150443 | 2249.1572499150443
+(1 row)
+
+rbh1_validation=# SELECT COUNT(*) AS orphan_grids
+FROM rbh1.spectral_grids g
+LEFT JOIN rbh1.wcs_solutions w ON g.wcs_id = w.wcs_id
+WHERE w.wcs_id IS NULL;
+ orphan_grids
+--------------
+            0
+(1 row)
+
+KEY FINDINGS:
+- All 18 grids have identical wavelength arrays (hash: 0839c17f2d67956c...)
+- 1447 spectral channels
+- Wavelength range: 0.970 - 1.890 µm (G140M/F100LP)
+- Sampling resolution R ~ 2249
+- No orphan records (FK integrity intact)

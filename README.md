@@ -162,7 +162,7 @@ Pre-computed grids from 3MdB database for radiative shock parameter inference.
 
 ## 🏗️ Repository Structure
 
-```
+```markdown
 rbh1-validation-reanalysis/
 ├── 🎨 assets/                      # Hero images and diagrams
 ├── 💾 data/                        # Data manifest and staging
